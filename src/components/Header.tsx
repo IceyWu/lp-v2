@@ -1,4 +1,8 @@
-import { Search, Bell, Plus, User, Home, Compass, Heart, Bookmark } from 'lucide-react';
+import { Search, Plus, User, Bell } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {
   activeTab: string;
@@ -6,91 +10,77 @@ interface HeaderProps {
   onCreatePost: () => void;
 }
 
-export default function Header({ activeTab, onTabChange, onCreatePost }: HeaderProps) {
-  const navItems = [
-    { id: 'home', icon: Home, label: '首页' },
-    { id: 'search', icon: Compass, label: '发现' },
-    { id: 'likes', icon: Heart, label: '喜欢' },
-    { id: 'saved', icon: Bookmark, label: '收藏' },
-  ];
-
+export default function Header({ onTabChange, onCreatePost }: HeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50">
-      <div className="max-w-7xl mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">生</span>
+    <TooltipProvider>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo with gradient accent */}
+            <div 
+              className="flex items-center gap-3 cursor-pointer group"
+              onClick={() => onTabChange('home')}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-600 rounded-2xl flex items-center justify-center transform group-hover:rotate-3 transition-transform duration-300">
+                <span className="text-white font-bold text-lg">L</span>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors">
+                Life
+              </h1>
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              生活记录
-            </h1>
-          </div>
 
-          {/* 导航菜单 */}
-          <nav className="flex items-center gap-8">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
+            {/* 中央搜索区 */}
+            <div className="flex-1 max-w-md mx-8">
+              <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+                <Input
+                  type="text"
+                  placeholder="搜索有趣的内容..."
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-gray-900 focus:bg-white transition-all duration-300"
+                />
+              </div>
+            </div>
+
+            {/* 右侧操作区 */}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={onCreatePost}
+                className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-2xl font-medium hover:bg-gray-800 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                <Plus size={18} />
+                <span>发布</span>
+              </Button>
               
-              return (
-                <button
-                  key={item.id}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-primary-100 to-secondary-100 text-primary-600'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                  onClick={() => onTabChange(item.id)}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* 右侧操作区 */}
-          <div className="flex items-center gap-4">
-            {/* 搜索框 */}
-            <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="搜索内容..."
-                className="w-64 pl-10 pr-4 py-2 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500 focus:bg-white transition-all"
-              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-2xl transition-all duration-300">
+                    <Bell size={20} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>通知</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Avatar 
+                    className="w-11 h-11 cursor-pointer hover:scale-105 transition-all duration-300 shadow-lg"
+                    onClick={() => onTabChange('profile')}
+                  >
+                    <AvatarFallback className="bg-gradient-to-br from-gray-900 to-gray-600 text-white">
+                      <User size={18} />
+                    </AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>个人资料</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
-
-            {/* 发布按钮 */}
-            <button
-              onClick={onCreatePost}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-xl hover:shadow-lg transition-all duration-300"
-            >
-              <Plus size={18} />
-              <span className="font-medium">发布</span>
-            </button>
-
-            {/* 通知 */}
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors">
-              <Bell size={20} />
-            </button>
-
-            {/* 用户头像 */}
-            <button 
-              className="flex items-center gap-2 p-1 hover:bg-gray-100 rounded-xl transition-colors"
-              onClick={() => onTabChange('profile')}
-            >
-              <img
-                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=40"
-                alt="Avatar"
-                className="w-8 h-8 rounded-full"
-              />
-            </button>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </TooltipProvider>
   );
 }

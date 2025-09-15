@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { X, Image, MapPin, Hash } from 'lucide-react';
+import { Post } from '../types';
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (postData: any) => void;
+  onSubmit: (postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => void;
 }
 
 export default function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePostModalProps) {
@@ -37,14 +38,14 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePos
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto animate-slide-up">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+      <div className="bg-white rounded-3xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto animate-bounce-gentle shadow-2xl">
         {/* 头部 */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900">分享生活动态</h2>
+          <h2 className="text-2xl font-bold text-gray-900">分享生活动态</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-all duration-300"
           >
             <X size={20} />
           </button>
@@ -121,7 +122,7 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePos
           {/* 提交按钮 */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-primary-500 to-secondary-500 text-white py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300"
+            className="w-full bg-black text-white py-3 rounded-xl font-medium hover:bg-gray-800 transition-all duration-300"
           >
             发布动态
           </button>

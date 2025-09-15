@@ -23,9 +23,9 @@ export default function ProfilePage() {
               <img
                 src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"
                 alt="Avatar"
-                className="w-24 h-24 rounded-full border-4 border-gradient-to-r from-primary-200 to-secondary-200"
+                className="w-24 h-24 rounded-full border-4 border-gray-200"
               />
-              <button className="absolute -bottom-1 -right-1 w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white">
+              <button className="absolute -bottom-1 -right-1 w-10 h-10 bg-black rounded-full flex items-center justify-center text-white">
                 <Camera size={16} />
               </button>
             </div>
@@ -65,7 +65,7 @@ export default function ProfilePage() {
                 key={tab.id}
                 className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary-50 to-secondary-50 text-primary-600'
+                    ? 'bg-gray-900 text-white'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                 }`}
               >

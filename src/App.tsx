@@ -49,7 +49,7 @@ function AppContent() {
     console.log('点击了动态:', postId);
   }, []);
 
-  const handleCreatePost = useCallback((postData: any) => {
+  const handleCreatePost = useCallback((postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => {
     const newPost: Post = {
       id: Date.now().toString(),
       ...postData,
@@ -76,8 +76,11 @@ function AppContent() {
         return <ProfilePage />;
       case 'likes':
         return (
-          <div className="max-w-6xl mx-auto px-8 py-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">我喜欢的</h2>
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">我喜欢的</h2>
+              <p className="text-xl text-gray-600">收集你最喜爱的精彩内容</p>
+            </div>
             <MasonryGrid columns={3}>
               {posts
                 .filter(post => post.isLiked)
@@ -95,8 +98,11 @@ function AppContent() {
         );
       case 'saved':
         return (
-          <div className="max-w-6xl mx-auto px-8 py-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">我的收藏</h2>
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">我的收藏</h2>
+              <p className="text-xl text-gray-600">保存的美好瞬间</p>
+            </div>
             <MasonryGrid columns={3}>
               {posts
                 .filter(post => post.isSaved)
@@ -115,13 +121,15 @@ function AppContent() {
       case 'home':
       default:
         return (
-          <div className="max-w-6xl mx-auto px-8 py-8">
+          <div className="max-w-7xl mx-auto">
             {/* 头部 */}
             <div className="mb-12 text-center">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 发现精彩生活
               </h1>
-              <p className="text-xl text-gray-600">分享每一个美好瞬间</p>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                分享每一个美好瞬间，记录生活中的点点滴滴
+              </p>
             </div>
 
             {/* 动态列表 */}
@@ -142,13 +150,7 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50">
-      {/* 背景装饰 */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-primary-200/20 to-secondary-200/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-3/4 right-1/4 w-[32rem] h-[32rem] bg-gradient-to-r from-secondary-200/20 to-primary-200/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-      </div>
-
+    <div className="min-h-screen bg-gray-50">
       {/* 顶部导航 */}
       <Header
         activeTab={activeTab}
@@ -157,11 +159,16 @@ function AppContent() {
       />
 
       {/* 侧边栏 */}
-      <Sidebar />
+      <Sidebar 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
 
       {/* 主内容区 */}
-      <main className="relative z-10 ml-64 pt-20">
-        {renderContent()}
+      <main className="ml-64 pt-20 min-h-screen">
+        <div className="p-8">
+          {renderContent()}
+        </div>
       </main>
 
       {/* 创建动态模态框 */}
