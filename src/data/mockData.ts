@@ -102,5 +102,73 @@ export const mockPosts: Post[] = [
     isSaved: true,
     createdAt: '2025-01-09T09:30:00Z',
     location: '杭州·西湖区'
+  },
+  {
+    id: '6',
+    title: '今日感悟',
+    content: '生活就像一杯茶，不会苦一辈子，但总会苦一阵子。重要的是在苦涩中品味甘甜，在平淡中发现美好。每一天都是新的开始，每一刻都值得珍惜。愿我们都能在忙碌的生活中，找到属于自己的那份宁静与快乐。',
+    images: [],
+    author: {
+      name: '思考者',
+      avatar: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=100'
+    },
+    tags: ['感悟', '生活', '哲思'],
+    likes: 342,
+    comments: 56,
+    saves: 128,
+    isLiked: false,
+    isSaved: false,
+    createdAt: '2025-01-08T20:15:00Z'
+  },
+  {
+    id: '7',
+    title: '工作日常碎碎念',
+    content: '今天又是忙碌的一天，但是完成了一个重要的项目，心情还是很不错的。虽然加班到很晚，但看到成果的那一刻，所有的疲惫都烟消云散了。努力的意义不在于立刻看到回报，而在于相信未来会更好。',
+    images: [],
+    author: {
+      name: '职场小白',
+      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100'
+    },
+    tags: ['工作', '努力', '成长'],
+    likes: 89,
+    comments: 23,
+    saves: 45,
+    isLiked: true,
+    isSaved: false,
+    createdAt: '2025-01-08T18:30:00Z'
+  },
+  {
+    id: '8',
+    title: '深夜随想',
+    content: '夜深了，城市渐渐安静下来。在这样的时刻，总是容易陷入思考。想起小时候的梦想，想起走过的路，想起遇见的人。时间真的是个神奇的东西，它带走了很多，也留下了很多。感谢所有的相遇和别离，它们都让我成为了更好的自己。',
+    images: [],
+    author: {
+      name: '夜猫子',
+      avatar: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=100'
+    },
+    tags: ['深夜', '思考', '回忆'],
+    likes: 156,
+    comments: 34,
+    saves: 78,
+    isLiked: false,
+    isSaved: true,
+    createdAt: '2025-01-08T01:45:00Z'
+  },
+  {
+    id: '9',
+    title: '关于友情的思考',
+    content: '真正的朋友不是那些在你辉煌时围绕在你身边的人，而是那些在你低谷时依然愿意陪伴你的人。友情不需要天天联系，但需要彼此惦记。一个眼神，一个微笑，就能明白对方的心意。珍惜身边的每一个真心朋友，他们是人生路上最珍贵的财富。',
+    images: [],
+    author: {
+      name: '暖心小太阳',
+      avatar: 'https://images.pexels.com/photos/1130623/pexels-photo-1130623.jpeg?auto=compress&cs=tinysrgb&w=100'
+    },
+    tags: ['友情', '珍惜', '温暖'],
+    likes: 267,
+    comments: 42,
+    saves: 189,
+    isLiked: true,
+    isSaved: true,
+    createdAt: '2025-01-07T15:20:00Z'
   }
 ];
