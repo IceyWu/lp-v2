@@ -38,6 +38,9 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.131.41
         version: 1.131.41(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      blurhash:
+        specifier: ^2.0.5
+        version: 2.0.5
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -50,6 +53,9 @@ importers:
       react:
         specifier: ^19.1.1
         version: 19.1.1
+      react-blurhash:
+        specifier: ^0.3.0
+        version: 0.3.0(blurhash@2.0.5)(react@19.1.1)
       react-dom:
         specifier: ^19.1.1
         version: 19.1.1(react@19.1.1)
@@ -1173,6 +1179,9 @@ packages:
     resolution: {integrity: sha512-mcE+Wr2CAhHNWxXN/DdTI+n4gsPc5QpXpWnyCQWiQYIYZX+ZMJ8juXZgjRa/0/YPJo/NSsgW15/YgmI4nbysYw==}
     hasBin: true
 
+  blurhash@2.0.5:
+    resolution: {integrity: sha512-cRygWd7kGBQO3VEhPiTgq4Wc43ctsM+o46urrmPOiuAe+07fzlSB9OJVdpgDL0jPqXUVQ9ht7aq7kxOeJHRK+w==}
+
   brace-expansion@1.1.12:
     resolution: {integrity: sha512-9T9UjW3r0UW5c1Q7GTwllptXwhvYmEzFhzMfZ9H7FQWt+uZePjZPjBP/W1ZEyZ1twGWom5/56TF4lPcqjnDHcg==}
 
@@ -1671,6 +1680,12 @@ packages:
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+
+  react-blurhash@0.3.0:
+    resolution: {integrity: sha512-XlKr4Ns1iYFRnk6DkAblNbAwN/bTJvxTVoxMvmTcURdc5oLoXZwqAF9N3LZUh/HT+QFlq5n6IS6VsDGsviYAiQ==}
+    peerDependencies:
+      blurhash: ^2.0.3
+      react: '>=15'
 
   react-dom@19.1.1:
     resolution: {integrity: sha512-Dlq/5LAZgF0Gaz6yiqZCf6VCcZs1ghAJyrsu84Q/GT0gV+mCxbfmKNoGRKBYMJ8IEdGPqu49YWXD02GCknEDkw==}
@@ -2950,6 +2965,8 @@ snapshots:
 
   baseline-browser-mapping@2.8.3: {}
 
+  blurhash@2.0.5: {}
+
   brace-expansion@1.1.12:
     dependencies:
       balanced-match: 1.0.2
@@ -3396,6 +3413,11 @@ snapshots:
   punycode@2.3.1: {}
 
   queue-microtask@1.2.3: {}
+
+  react-blurhash@0.3.0(blurhash@2.0.5)(react@19.1.1):
+    dependencies:
+      blurhash: 2.0.5
+      react: 19.1.1
 
   react-dom@19.1.1(react@19.1.1):
     dependencies:

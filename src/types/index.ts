@@ -1,8 +1,18 @@
+export interface PostImage {
+  id: number;
+  url: string;
+  width: number;
+  height: number;
+  blurhash: string;
+  type: string;
+  name: string;
+}
+
 export interface Post {
   id: string;
   title: string;
   content: string;
-  images: string[];
+  images: PostImage[];
   author: {
     name: string;
     avatar: string;

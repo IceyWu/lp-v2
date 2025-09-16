@@ -4,73 +4,119 @@ import { Heart, Bookmark, TrendingUp } from 'lucide-react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import PostCard from './components/PostCard';
-import MasonryGrid from './components/MasonryGrid';
+import ResponsiveMasonry from './components/ResponsiveMasonry';
 import CreatePostModal from './components/CreatePostModal';
 import SearchPage from './components/SearchPage';
 import ProfilePage from './components/ProfilePage';
 import FloatingNavBar from './components/FloatingNavBar';
-import { mockPosts } from './data/mockData';
+import LoginModal from './components/LoginModal';
+import { useTopics, useLikeTopic, useCreateTopic } from './hooks/useTopics';
+import { useIsAuthenticated } from './hooks/useAuth';
 import { Post } from './types';
 
 const queryClient = new QueryClient();
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('home');
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  // 获取话题数据
+  const { data: topicsData, isLoading, error, refetch } = useTopics({
+    page: 1,
+    size: 20,
+    sort: 'createdAt,desc'
+  });
+
+  // 获取用户认证状态
+  const { isAuthenticated, user } = useIsAuthenticated();
+
+  // 点赞功能
+  const likeMutation = useLikeTopic();
+
+  // 创建话题功能
+  const createTopicMutation = useCreateTopic();
+
+  const posts = topicsData?.items || [];
 
   const handleLike = useCallback((postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? {
-            ...post,
-            isLiked: !post.isLiked,
-            likes: post.isLiked ? post.likes - 1 : post.likes + 1
-          }
-          : post
-      )
-    );
-  }, []);
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    likeMutation.mutate({
+      topicId: Number(postId),
+      isLiked: post.isLiked
+    });
+  }, [posts, isAuthenticated, likeMutation]);
 
   const handleSave = useCallback((postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(post =>
-        post.id === postId
-          ? {
-            ...post,
-            isSaved: !post.isSaved,
-            saves: post.isSaved ? post.saves - 1 : post.saves + 1
-          }
-          : post
-      )
-    );
-  }, []);
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    // TODO: 实现收藏功能，需要后端API支持
+    console.log('收藏功能待实现:', postId);
+  }, [isAuthenticated]);
 
   const handlePostClick = useCallback((postId: string) => {
     console.log('点击了动态:', postId);
   }, []);
 
   const handleCreatePost = useCallback((postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => {
-    const newPost: Post = {
-      id: Date.now().toString(),
-      ...postData,
-      author: {
-        name: '小雨',
-        avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100'
-      },
-      likes: 0,
-      comments: 0,
-      saves: 0,
-      isLiked: false,
-      isSaved: false,
-      createdAt: new Date().toISOString(),
-    };
+    if (!isAuthenticated) {
+      setIsLoginModalOpen(true);
+      return;
+    }
 
-    setPosts(prevPosts => [newPost, ...prevPosts]);
-  }, []);
+    createTopicMutation.mutate({
+      title: postData.title,
+      content: postData.content,
+      images: postData.images,
+      tags: postData.tags,
+      location: postData.location,
+    });
+  }, [isAuthenticated, createTopicMutation]);
+
+  const handleLoginSuccess = useCallback(() => {
+    // 登录成功后刷新数据
+    refetch();
+  }, [refetch]);
 
   const renderContent = () => {
+    // 加载状态
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">加载中...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // 错误状态
+    if (error) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">加载失败</p>
+            <button 
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              重试
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'search':
         return <SearchPage />;
@@ -91,7 +137,7 @@ function AppContent() {
             </div>
 
             <section>
-              <MasonryGrid columns={3}>
+              <ResponsiveMasonry gap={16}>
                 {posts
                   .sort((a, b) => (b.likes + b.comments + b.saves) - (a.likes + a.comments + a.saves))
                   .map((post) => (
@@ -103,7 +149,7 @@ function AppContent() {
                       onClick={handlePostClick}
                     />
                   ))}
-              </MasonryGrid>
+              </ResponsiveMasonry>
             </section>
           </div>
         );
@@ -122,7 +168,7 @@ function AppContent() {
             </div>
 
             <section>
-              <MasonryGrid columns={3}>
+              <ResponsiveMasonry gap={16}>
                 {posts
                   .filter(post => post.isLiked)
                   .map((post) => (
@@ -134,7 +180,7 @@ function AppContent() {
                       onClick={handlePostClick}
                     />
                   ))}
-              </MasonryGrid>
+              </ResponsiveMasonry>
             </section>
           </div>
         );
@@ -153,7 +199,7 @@ function AppContent() {
             </div>
 
             <section>
-              <MasonryGrid columns={3}>
+              <ResponsiveMasonry gap={16}>
                 {posts
                   .filter(post => post.isSaved)
                   .map((post) => (
@@ -165,7 +211,7 @@ function AppContent() {
                       onClick={handlePostClick}
                     />
                   ))}
-              </MasonryGrid>
+              </ResponsiveMasonry>
             </section>
           </div>
         );
@@ -175,17 +221,23 @@ function AppContent() {
           <div className="space-y-8">
             {/* 内容网格 */}
             <section>
-              <MasonryGrid columns={3}>
-                {posts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onLike={handleLike}
-                    onSave={handleSave}
-                    onClick={handlePostClick}
-                  />
-                ))}
-              </MasonryGrid>
+              {posts.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-gray-500">暂无内容</p>
+                </div>
+              ) : (
+                <ResponsiveMasonry gap={16}>
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onLike={handleLike}
+                      onSave={handleSave}
+                      onClick={handlePostClick}
+                    />
+                  ))}
+                </ResponsiveMasonry>
+              )}
             </section>
           </div>
         );
@@ -219,6 +271,13 @@ function AppContent() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreatePost}
+      />
+
+      {/* 登录模态框 */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={handleLoginSuccess}
       />
     </div>
   );

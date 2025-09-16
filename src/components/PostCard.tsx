@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ImageGallery from './ImageGallery';
 import { Post } from '../types';
 
 interface PostCardProps {
@@ -14,7 +15,17 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onLike, onSave, onClick }: PostCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // 计算卡片的动态高度，基于内容和图片
+  const calculateCardHeight = () => {
+    if (post.images.length === 0) return 'auto';
+    
+    // 基于第一张图片的宽高比计算显示高度
+    const firstImage = post.images[0];
+    const cardWidth = 320; // 假设卡片宽度
+    const imageHeight = Math.min((firstImage.height / firstImage.width) * cardWidth, 400);
+    
+    return imageHeight + 200; // 图片高度 + 内容区域高度
+  };
   
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -30,7 +41,7 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
 
   return (
     <Card 
-      className={`overflow-hidden cursor-pointer group border transition-all duration-500 rounded-2xl relative ${
+      className={`w-full overflow-hidden cursor-pointer group border transition-all duration-500 rounded-2xl relative ${
         post.images.length === 0 
           ? 'border-gray-200 bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200/50' 
           : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-xl hover:shadow-black/5'
@@ -39,25 +50,14 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
     >
       {/* 图片部分 */}
       {post.images.length > 0 && (
-        <div className="relative overflow-hidden">
-          <img
-            src={post.images[0]}
-            alt={post.title}
-            className={`w-full h-52 object-cover transition-all duration-500 group-hover:scale-105 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-            onLoad={() => setImageLoaded(true)}
+        <div className="relative overflow-hidden rounded-t-2xl">
+          <ImageGallery 
+            images={post.images} 
+            maxDisplay={9}
+            className="transition-all duration-500 group-hover:scale-[1.01]"
           />
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse" />
-          )}
-          {post.images.length > 1 && (
-            <Badge className="absolute top-4 right-4 bg-black/80 backdrop-blur-sm text-white border-0 text-xs px-2 py-1 rounded-full">
-              +{post.images.length - 1}
-            </Badge>
-          )}
           {/* 悬停遮罩 */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300 rounded-t-2xl pointer-events-none" />
         </div>
       )}
 
