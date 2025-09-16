@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { apiService } from '../services/api';
+import { useLogin, useRegister } from '../hooks/useAuth';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -11,66 +11,54 @@ interface LoginModalProps {
 export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    phone: '',
+    account: '',
     password: '',
     name: '',
-    code: ''
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  const loginMutation = useLogin();
+  const registerMutation = useRegister();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
     try {
-      let response;
       if (isLogin) {
-        // 登录
-        response = await fetch('https://test.wktest.cn:3001/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phone: formData.phone,
-            password: formData.password,
-          }),
+        const result = await loginMutation.mutateAsync({
+          account: formData.account,
+          password: formData.password,
         });
+        
+        if (result.code === 200) {
+          onSuccess();
+          onClose();
+          // 重置表单
+          setFormData({ account: '', password: '', name: '' });
+        }
       } else {
-        // 注册
-        response = await fetch('https://test.wktest.cn:3001/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phone: formData.phone,
-            password: formData.password,
-            name: formData.name,
-          }),
+        const result = await registerMutation.mutateAsync({
+          account: formData.account,
+          password: formData.password,
+          name: formData.name,
         });
+        
+        if (result.code === 200) {
+          onSuccess();
+          onClose();
+          // 重置表单
+          setFormData({ account: '', password: '', name: '' });
+        }
       }
-
-      const data = await response.json();
-
-      if (data.code === 200 && data.result?.token) {
-        // 保存token
-        apiService.setToken(data.result.token);
-        onSuccess();
-        onClose();
-      } else {
-        setError(data.message || '操作失败');
-      }
-    } catch (err) {
-      setError('网络错误，请重试');
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      // 错误已经在mutation中处理
+      console.error('认证失败:', error);
     }
   };
+
+  const currentMutation = isLogin ? loginMutation : registerMutation;
+  const error = currentMutation.error as any;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -90,14 +78,14 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              手机号
+              账号
             </label>
             <input
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              type="text"
+              value={formData.account}
+              onChange={(e) => setFormData({ ...formData, account: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="请输入手机号"
+              placeholder="请输入账号"
               required
             />
           </div>
@@ -133,15 +121,17 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <div className="text-red-600 text-sm">
+              {error.message || '操作失败，请重试'}
+            </div>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={currentMutation.isPending}
             className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
           >
-            {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
+            {currentMutation.isPending ? '处理中...' : (isLogin ? '登录' : '注册')}
           </button>
         </form>
 

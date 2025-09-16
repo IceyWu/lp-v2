@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Heart, Bookmark, TrendingUp } from 'lucide-react';
+import { Heart, Bookmark, TrendingUp, User } from 'lucide-react';
 import Header from './components/Header';
 
 import SimpleInfiniteScroll from './components/SimpleInfiniteScroll';
@@ -139,6 +139,23 @@ function AppContent() {
       case 'search':
         return <SearchPage />;
       case 'profile':
+        if (!isAuthenticated) {
+          return (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <User size={48} className="text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">请先登录</h3>
+                <p className="text-gray-500 mb-6">登录后查看个人中心</p>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+                >
+                  立即登录
+                </button>
+              </div>
+            </div>
+          );
+        }
         return <ProfilePage />;
       case 'trending':
         return (
@@ -166,6 +183,23 @@ function AppContent() {
           </div>
         );
       case 'likes':
+        if (!isAuthenticated) {
+          return (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Heart size={48} className="text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">请先登录</h3>
+                <p className="text-gray-500 mb-6">登录后查看你喜欢的内容</p>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+                >
+                  立即登录
+                </button>
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="space-y-8">
             {/* 简洁的页面标识 */}
@@ -191,6 +225,23 @@ function AppContent() {
           </div>
         );
       case 'saved':
+        if (!isAuthenticated) {
+          return (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Bookmark size={48} className="text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-600 mb-2">请先登录</h3>
+                <p className="text-gray-500 mb-6">登录后查看你的收藏</p>
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+                >
+                  立即登录
+                </button>
+              </div>
+            </div>
+          );
+        }
         return (
           <div className="space-y-8">
             {/* 简洁的页面标识 */}
@@ -239,7 +290,14 @@ function AppContent() {
       <Header
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onCreatePost={() => setIsCreateModalOpen(true)}
+        onCreatePost={() => {
+          if (!isAuthenticated) {
+            setIsLoginModalOpen(true);
+          } else {
+            setIsCreateModalOpen(true);
+          }
+        }}
+        onLogin={() => setIsLoginModalOpen(true)}
       />
 
       {/* 主容器 */}
@@ -253,6 +311,7 @@ function AppContent() {
       <FloatingNavBar
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        onLogin={() => setIsLoginModalOpen(true)}
       />
 
       {/* 创建动态模态框 */}

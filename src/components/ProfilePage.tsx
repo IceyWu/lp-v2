@@ -1,10 +1,33 @@
 import { Settings, Grid, Heart, Bookmark, Camera } from 'lucide-react';
+import { useIsAuthenticated } from '../hooks/useAuth';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function ProfilePage() {
+  const { user, isLoading } = useIsAuthenticated();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <p className="text-gray-600">用户信息加载失败</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 模拟统计数据，后续可以通过API获取
   const stats = [
-    { label: '动态', value: '23' },
-    { label: '关注', value: '156' },
-    { label: '粉丝', value: '89' },
+    { label: '动态', value: '0' },
+    { label: '关注', value: '0' },
+    { label: '粉丝', value: '0' },
   ];
 
   const tabs = [
@@ -21,7 +44,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"
+                src={user.avatarInfo?.url || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"}
                 alt="Avatar"
                 className="w-16 h-16 rounded-full object-cover"
               />
@@ -31,8 +54,8 @@ export default function ProfilePage() {
             </div>
             
             <div>
-              <h1 className="text-xl font-semibold text-black">小雨</h1>
-              <p className="text-sm text-gray-600">记录生活中的美好时光 ✨</p>
+              <h1 className="text-xl font-semibold text-black">{user.name || user.account}</h1>
+              <p className="text-sm text-gray-600">{user.signature || '记录生活中的美好时光 ✨'}</p>
             </div>
           </div>
           

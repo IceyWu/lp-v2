@@ -1,16 +1,20 @@
-import { Search, Plus, User, Bell } from 'lucide-react';
+import { Search, Plus, User, Bell, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsAuthenticated, useLogout } from '../hooks/useAuth';
 
 interface HeaderProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onCreatePost: () => void;
+  onLogin: () => void;
 }
 
-export default function Header({ onTabChange, onCreatePost }: HeaderProps) {
+export default function Header({ onTabChange, onCreatePost, onLogin }: HeaderProps) {
+  const { isAuthenticated, user } = useIsAuthenticated();
+  const logoutMutation = useLogout();
   return (
     <TooltipProvider>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
@@ -43,40 +47,68 @@ export default function Header({ onTabChange, onCreatePost }: HeaderProps) {
 
             {/* 右侧操作区 */}
             <div className="flex items-center gap-4">
-              <Button
-                onClick={onCreatePost}
-                className="bg-black text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                <Plus size={16} className="mr-2" />
-                发布
-              </Button>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="p-3 text-gray-600 hover:text-black hover:bg-gray-100 rounded-full transition-all duration-200">
-                    <Bell size={18} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>通知</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Avatar 
-                    className="w-9 h-9 cursor-pointer hover:scale-110 transition-all duration-200 ring-2 ring-gray-100 hover:ring-gray-200"
-                    onClick={() => onTabChange('profile')}
+              {isAuthenticated ? (
+                <>
+                  <Button
+                    onClick={onCreatePost}
+                    className="bg-black text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
-                      <User size={16} />
-                    </AvatarFallback>
-                  </Avatar>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>个人资料</p>
-                </TooltipContent>
-              </Tooltip>
+                    <Plus size={16} className="mr-2" />
+                    发布
+                  </Button>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" className="p-3 text-gray-600 hover:text-black hover:bg-gray-100 rounded-full transition-all duration-200">
+                        <Bell size={18} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>通知</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="p-3 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
+                        onClick={() => logoutMutation.mutate()}
+                        disabled={logoutMutation.isPending}
+                      >
+                        <LogOut size={18} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>退出登录</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Avatar 
+                        className="w-9 h-9 cursor-pointer hover:scale-110 transition-all duration-200 ring-2 ring-gray-100 hover:ring-gray-200"
+                        onClick={() => onTabChange('profile')}
+                      >
+                        <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
+                          {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{user?.name || '个人资料'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              ) : (
+                <Button
+                  onClick={onLogin}
+                  className="bg-black text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-800 hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  登录
+                </Button>
+              )}
             </div>
           </div>
         </div>

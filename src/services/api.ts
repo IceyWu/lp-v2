@@ -5,7 +5,7 @@ const API_BASE_URL = config.API_BASE_URL;
 // API响应基础类型
 export interface ApiResponse<T = any> {
   code: number;
-  message: string;
+  msg: string;
   result: T;
   timestamp: number;
 }
@@ -69,7 +69,7 @@ export interface ApiTopic {
     height: number;
     blurhash: string;
     videoSrc?: string | null;
-    fromIphone: boolean;
+    fromIaccount: boolean;
   }>;
 }
 
@@ -81,12 +81,50 @@ export interface CreateLikeDto {
 // 用户类型
 export interface ApiUser {
   id: number;
+  account: string;
   name: string;
-  email?: string;
   avatar?: string;
-  phone?: string;
+  github?: string | null;
   createdAt: string;
   updatedAt: string;
+  role: string;
+  sex: number;
+  birthday?: string | null;
+  city?: string | null;
+  job?: string | null;
+  company?: string | null;
+  signature?: string | null;
+  email?: string | null;
+  website?: string | null;
+  freezed: boolean;
+  uuId?: string | null;
+  background?: string | null;
+  chatRoomId?: number;
+  avatarFileMd5?: string;
+  backgroundInfoFileMd5?: string;
+  username?: string | null;
+  userId?: number | null;
+  openid?: string;
+  ipInfoId?: number;
+  avatarInfo?: {
+    id: number;
+    name: string;
+    url: string;
+    width: number;
+    height: number;
+    blurhash: string;
+  } | null;
+  backgroundInfo?: any;
+}
+
+// 登录响应类型
+export interface LoginResponse {
+  admin: ApiUser;
+  token: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  };
 }
 
 class ApiService {
@@ -104,9 +142,9 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
@@ -119,6 +157,12 @@ class ApiService {
         headers,
       });
 
+      // 处理401未授权错误
+      if (response.status === 401) {
+        this.clearToken();
+        throw new Error('登录已过期，请重新登录');
+      }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -127,7 +171,7 @@ class ApiService {
       
       // 检查API响应是否成功
       if (data.code !== 200) {
-        throw new Error(data.message || 'API请求失败');
+        throw new Error(data.msg || 'API请求失败');
       }
       
       return data;
@@ -251,6 +295,48 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  // 登录
+  async login(account: string, password: string): Promise<ApiResponse<LoginResponse>> {
+    const response = await this.request<LoginResponse>('/api/auth/loginV2', {
+      method: 'POST',
+      body: JSON.stringify({ account, password }),
+    });
+    
+    if (response.code === 200 && response.result?.token?.access_token) {
+      this.setToken(response.result.token.access_token);
+    }
+    
+    return response;
+  }
+
+  // 注册
+  async register(account: string, password: string, name: string): Promise<ApiResponse<LoginResponse>> {
+    const response = await this.request<LoginResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ account, password, name }),
+    });
+    
+    if (response.code === 200 && response.result?.token?.access_token) {
+      this.setToken(response.result.token.access_token);
+    }
+    
+    return response;
+  }
+
+  // 登出
+  async logout(): Promise<void> {
+    try {
+      await this.request('/api/auth/logout', {
+        method: 'POST',
+      });
+    } catch (error) {
+      // 即使登出接口失败，也要清除本地token
+      console.warn('登出接口调用失败，但会清除本地token');
+    } finally {
+      this.clearToken();
+    }
   }
 
   // 获取当前用户信息
