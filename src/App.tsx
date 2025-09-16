@@ -2,15 +2,18 @@ import { useState, useCallback } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Heart, Bookmark, TrendingUp } from 'lucide-react';
 import Header from './components/Header';
-import Sidebar from './components/Sidebar';
-import PostCard from './components/PostCard';
-import ResponsiveMasonry from './components/ResponsiveMasonry';
+
+import SimpleInfiniteScroll from './components/SimpleInfiniteScroll';
 import CreatePostModal from './components/CreatePostModal';
 import SearchPage from './components/SearchPage';
 import ProfilePage from './components/ProfilePage';
 import FloatingNavBar from './components/FloatingNavBar';
 import LoginModal from './components/LoginModal';
-import { useTopics, useLikeTopic, useCreateTopic } from './hooks/useTopics';
+import LoadingSpinner from './components/LoadingSpinner';
+import BackToTop from './components/BackToTop';
+import ErrorBoundary from './components/ErrorBoundary';
+import SimpleImageDetail from './components/SimpleImageDetail';
+import { useInfiniteTopics, useLikeTopic, useCreateTopic } from './hooks/useTopics';
 import { useIsAuthenticated } from './hooks/useAuth';
 import { Post } from './types';
 
@@ -20,16 +23,24 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('home');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
 
-  // 获取话题数据
-  const { data: topicsData, isLoading, error, refetch } = useTopics({
-    page: 1,
+  // 获取话题数据（无限滚动）
+  const {
+    data: topicsData,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch
+  } = useInfiniteTopics({
     size: 20,
-    sort: 'createdAt,desc'
+    sort: activeTab === 'trending' ? 'likes,desc' : 'createdAt,desc'
   });
 
   // 获取用户认证状态
-  const { isAuthenticated, user } = useIsAuthenticated();
+  const { isAuthenticated } = useIsAuthenticated();
 
   // 点赞功能
   const likeMutation = useLikeTopic();
@@ -37,7 +48,8 @@ function AppContent() {
   // 创建话题功能
   const createTopicMutation = useCreateTopic();
 
-  const posts = topicsData?.items || [];
+  // 合并所有页面的数据
+  const posts = topicsData?.pages.flatMap((page: any) => page.items) || [];
 
   const handleLike = useCallback((postId: string) => {
     if (!isAuthenticated) {
@@ -64,7 +76,7 @@ function AppContent() {
   }, [isAuthenticated]);
 
   const handlePostClick = useCallback((postId: string) => {
-    console.log('点击了动态:', postId);
+    setSelectedTopicId(Number(postId));
   }, []);
 
   const handleCreatePost = useCallback((postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => {
@@ -76,7 +88,7 @@ function AppContent() {
     createTopicMutation.mutate({
       title: postData.title,
       content: postData.content,
-      images: postData.images,
+      images: postData.images.map(img => img.url),
       tags: postData.tags,
       location: postData.location,
     });
@@ -87,13 +99,19 @@ function AppContent() {
     refetch();
   }, [refetch]);
 
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   const renderContent = () => {
-    // 加载状态
-    if (isLoading) {
+    // 初始加载状态
+    if (isLoading && !topicsData) {
       return (
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <LoadingSpinner size="lg" className="mb-4" />
             <p className="text-gray-600">加载中...</p>
           </div>
         </div>
@@ -106,7 +124,7 @@ function AppContent() {
         <div className="flex items-center justify-center py-20">
           <div className="text-center">
             <p className="text-red-600 mb-4">加载失败</p>
-            <button 
+            <button
               onClick={() => refetch()}
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
@@ -136,21 +154,15 @@ function AppContent() {
               </div>
             </div>
 
-            <section>
-              <ResponsiveMasonry gap={16}>
-                {posts
-                  .sort((a, b) => (b.likes + b.comments + b.saves) - (a.likes + a.comments + a.saves))
-                  .map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onClick={handlePostClick}
-                    />
-                  ))}
-              </ResponsiveMasonry>
-            </section>
+            <SimpleInfiniteScroll
+              posts={posts.sort((a, b) => (b.likes + b.comments + b.saves) - (a.likes + a.comments + a.saves))}
+              hasMore={hasNextPage || false}
+              isLoading={isFetchingNextPage}
+              onLoadMore={handleLoadMore}
+              onLike={handleLike}
+              onSave={handleSave}
+              onPostClick={handlePostClick}
+            />
           </div>
         );
       case 'likes':
@@ -167,21 +179,15 @@ function AppContent() {
               </div>
             </div>
 
-            <section>
-              <ResponsiveMasonry gap={16}>
-                {posts
-                  .filter(post => post.isLiked)
-                  .map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onClick={handlePostClick}
-                    />
-                  ))}
-              </ResponsiveMasonry>
-            </section>
+            <SimpleInfiniteScroll
+              posts={posts.filter(post => post.isLiked)}
+              hasMore={hasNextPage || false}
+              isLoading={isFetchingNextPage}
+              onLoadMore={handleLoadMore}
+              onLike={handleLike}
+              onSave={handleSave}
+              onPostClick={handlePostClick}
+            />
           </div>
         );
       case 'saved':
@@ -198,47 +204,30 @@ function AppContent() {
               </div>
             </div>
 
-            <section>
-              <ResponsiveMasonry gap={16}>
-                {posts
-                  .filter(post => post.isSaved)
-                  .map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onClick={handlePostClick}
-                    />
-                  ))}
-              </ResponsiveMasonry>
-            </section>
+            <SimpleInfiniteScroll
+              posts={posts.filter(post => post.isSaved)}
+              hasMore={hasNextPage || false}
+              isLoading={isFetchingNextPage}
+              onLoadMore={handleLoadMore}
+              onLike={handleLike}
+              onSave={handleSave}
+              onPostClick={handlePostClick}
+            />
           </div>
         );
       case 'home':
       default:
         return (
           <div className="space-y-8">
-            {/* 内容网格 */}
-            <section>
-              {posts.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-gray-500">暂无内容</p>
-                </div>
-              ) : (
-                <ResponsiveMasonry gap={16}>
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                      onSave={handleSave}
-                      onClick={handlePostClick}
-                    />
-                  ))}
-                </ResponsiveMasonry>
-              )}
-            </section>
+            <SimpleInfiniteScroll
+              posts={posts}
+              hasMore={hasNextPage || false}
+              isLoading={isFetchingNextPage}
+              onLoadMore={handleLoadMore}
+              onLike={handleLike}
+              onSave={handleSave}
+              onPostClick={handlePostClick}
+            />
           </div>
         );
     }
@@ -279,6 +268,20 @@ function AppContent() {
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={handleLoginSuccess}
       />
+
+      {/* 话题详情模态框 */}
+      {selectedTopicId && (
+        <SimpleImageDetail
+          topicId={selectedTopicId}
+          isOpen={!!selectedTopicId}
+          onClose={() => setSelectedTopicId(null)}
+          onLike={handleLike}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* 回到顶部按钮 */}
+      <BackToTop />
     </div>
   );
 }
@@ -286,7 +289,9 @@ function AppContent() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

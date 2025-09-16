@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageGallery from './ImageGallery';
+import ErrorBoundary from './ErrorBoundary';
 import { Post } from '../types';
 
 interface PostCardProps {
@@ -51,11 +52,17 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
       {/* 图片部分 */}
       {post.images.length > 0 && (
         <div className="relative overflow-hidden rounded-t-2xl">
-          <ImageGallery 
-            images={post.images} 
-            maxDisplay={9}
-            className="transition-all duration-500 group-hover:scale-[1.01]"
-          />
+          <ErrorBoundary fallback={
+            <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-500">图片加载失败</span>
+            </div>
+          }>
+            <ImageGallery 
+              images={post.images} 
+              maxDisplay={9}
+              className="transition-all duration-500 group-hover:scale-[1.01]"
+            />
+          </ErrorBoundary>
           {/* 悬停遮罩 */}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300 rounded-t-2xl pointer-events-none" />
         </div>

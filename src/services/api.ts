@@ -206,6 +206,53 @@ class ApiService {
     });
   }
 
+  // 获取话题详情
+  async getTopicDetail(id: number, userId?: number, exif?: boolean): Promise<ApiResponse<ApiTopic>> {
+    const searchParams = new URLSearchParams();
+    if (userId) searchParams.append('userId', String(userId));
+    if (exif) searchParams.append('exif', String(exif));
+    
+    const queryString = searchParams.toString();
+    const endpoint = `/api/topic/${id}${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request<ApiTopic>(endpoint);
+  }
+
+  // 获取评论列表
+  async getComments(params?: {
+    page?: number;
+    size?: number;
+    topicId?: number;
+    userId?: number;
+  }): Promise<ApiResponse<PaginatedResponse<any>>> {
+    const searchParams = new URLSearchParams();
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/comment${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request<PaginatedResponse<any>>(endpoint);
+  }
+
+  // 创建评论
+  async createComment(data: {
+    topicId: number;
+    content: string;
+    parentId?: number;
+  }): Promise<ApiResponse<any>> {
+    return this.request('/api/comment', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // 获取当前用户信息
   async getCurrentUser(): Promise<ApiResponse<ApiUser>> {
     return this.request<ApiUser>('/api/auth/current');

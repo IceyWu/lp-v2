@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Blurhash } from 'react-blurhash';
 import { PostImage } from '../types';
-import { isValidBlurhash, getDefaultBlurhash } from '../utils/blurhash';
 
-interface OptimizedImageProps {
+interface SafeOptimizedImageProps {
     image: PostImage;
     width?: number;
     height?: number;
@@ -21,13 +19,13 @@ const generateOSSParams = (originalWidth: number, originalHeight: number, target
     return `?x-oss-process=image/resize,w_${targetWidth},h_${targetHeight},m_lfit/quality,q_80/format,webp`;
 };
 
-export default function OptimizedImage({
+export default function SafeOptimizedImage({
     image,
     width,
     height,
     className = '',
     onClick
-}: OptimizedImageProps) {
+}: SafeOptimizedImageProps) {
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
 
@@ -57,22 +55,10 @@ export default function OptimizedImage({
             style={containerStyle}
             onClick={onClick}
         >
-            {/* Blurhash占位符 */}
+            {/* 简单的占位符 */}
             {!imageLoaded && !imageError && (
-                <div className="absolute inset-0">
-                    {isValidBlurhash(image.blurhash) ? (
-                        <Blurhash
-                            hash={image.blurhash}
-                            width="100%"
-                            height="100%"
-                            resolutionX={32}
-                            resolutionY={32}
-                            punch={1}
-                            className="w-full h-full"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse"></div>
-                    )}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}
 
@@ -92,13 +78,6 @@ export default function OptimizedImage({
             {imageError && (
                 <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
                     <div className="text-gray-400 text-sm">图片加载失败</div>
-                </div>
-            )}
-
-            {/* 加载指示器 */}
-            {!imageLoaded && !imageError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-                    <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                 </div>
             )}
         </div>

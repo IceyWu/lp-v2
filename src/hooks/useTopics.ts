@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { apiService, ApiTopic, PaginatedResponse } from '../services/api';
 import { Post, PostImage } from '../types';
 
@@ -49,7 +49,46 @@ const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
   };
 };
 
-// 获取话题列表的hook
+// 获取话题列表的hook（无限滚动版本）
+export const useInfiniteTopics = (params?: {
+  size?: number;
+  sort?: string;
+  title?: string;
+  keywords?: string;
+  tagId?: number;
+  userId?: number;
+  exif?: boolean;
+}) => {
+  return useInfiniteQuery({
+    queryKey: ['topics', 'infinite', params],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await apiService.getTopics({
+        ...params,
+        page: pageParam,
+        size: params?.size || 20,
+      });
+      
+      if (response.code === 200 && response.result) {
+        return {
+          items: response.result.data.map(transformApiTopicToPost),
+          total: response.result.meta.totalElements,
+          page: response.result.meta.current_page,
+          size: response.result.meta.size,
+          totalPages: response.result.meta.totalPages,
+          hasNextPage: response.result.meta.current_page < response.result.meta.totalPages,
+        };
+      }
+      throw new Error(response.message || '获取话题列表失败');
+    },
+    getNextPageParam: (lastPage) => {
+      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+};
+
+// 获取话题列表的hook（普通版本，保持向后兼容）
 export const useTopics = (params?: {
   page?: number;
   size?: number;
@@ -111,6 +150,28 @@ export const useLikeTopic = () => {
           }),
         };
       });
+
+      // 也更新无限查询的缓存
+      queryClient.setQueryData(['topics', 'infinite'], (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((post: Post) => {
+              if (post.id === String(variables.topicId)) {
+                return {
+                  ...post,
+                  isLiked: !variables.isLiked,
+                  likes: variables.isLiked ? post.likes - 1 : post.likes + 1,
+                };
+              }
+              return post;
+            }),
+          })),
+        };
+      });
     },
     onError: (error) => {
       console.error('点赞操作失败:', error);
@@ -137,7 +198,7 @@ export const useCreateTopic = () => {
       throw new Error(response.message || '创建话题失败');
     },
     onSuccess: (newPost) => {
-      // 将新话题添加到缓存的开头
+      // 将新话题添加到普通查询缓存的开头
       queryClient.setQueryData(['topics'], (oldData: any) => {
         if (!oldData) return { items: [newPost], total: 1, page: 1, size: 10, totalPages: 1 };
         
@@ -147,6 +208,9 @@ export const useCreateTopic = () => {
           total: oldData.total + 1,
         };
       });
+
+      // 将新话题添加到无限查询缓存的开头
+      queryClient.invalidateQueries({ queryKey: ['topics', 'infinite'] });
     },
     onError: (error) => {
       console.error('创建话题失败:', error);

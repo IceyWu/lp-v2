@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
-import OptimizedImage from './OptimizedImage';
+import SafeOptimizedImage from './SafeOptimizedImage';
 import { PostImage } from '../types';
 
 interface ImageGalleryProps {
   images: PostImage[];
   maxDisplay?: number;
   className?: string;
+  onImageClick?: (index: number) => void;
 }
 
 export default function ImageGallery({ 
   images, 
   maxDisplay = 9, 
-  className = '' 
+  className = '',
+  onImageClick
 }: ImageGalleryProps) {
   const [showAll, setShowAll] = useState(false);
   
@@ -77,8 +79,12 @@ export default function ImageGallery({
             : layoutConfig.imageClass;
           
           return (
-            <div key={image.id} className="relative overflow-hidden rounded-lg">
-              <OptimizedImage
+            <div 
+              key={image.id} 
+              className="relative overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => onImageClick?.(index)}
+            >
+              <SafeOptimizedImage
                 image={image}
                 className={`${imageClass} object-cover`}
               />
