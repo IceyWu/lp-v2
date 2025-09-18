@@ -83,8 +83,10 @@ export const useInfiniteTopics = (params?: {
     getNextPageParam: (lastPage) => {
       return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 增加到10分钟
+    gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
     retry: 2,
+    refetchOnWindowFocus: false, // 配合keep-alive，避免不必要的重新获取
   });
 };
 
@@ -114,8 +116,10 @@ export const useTopics = (params?: {
       }
       throw new Error(response.message || '获取话题列表失败');
     },
-    staleTime: 5 * 60 * 1000, // 5分钟内数据被认为是新鲜的
+    staleTime: 10 * 60 * 1000, // 10分钟内数据被认为是新鲜的
+    gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
     retry: 2,
+    refetchOnWindowFocus: false, // 配合keep-alive，避免不必要的重新获取
   });
 };
 

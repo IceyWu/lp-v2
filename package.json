@@ -31,15 +31,21 @@
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
+    "react-activation": "^0.13.4",
     "react-blurhash": "^0.3.0",
     "react-dom": "^19.1.1",
     "react-hotkeys-hook": "^5.1.0",
     "react-infinite-scroll-component": "^6.1.0",
     "shadcn-ui": "^0.9.5",
     "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "use-local-storage-state": "^19.5.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-typescript": "^7.27.1",
     "@eslint/js": "^9.35.0",
     "@types/node": "^24.4.0",
     "@types/react": "^19.1.13",

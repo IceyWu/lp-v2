@@ -1,4 +1,5 @@
 import { Search, Plus, User, Bell, LogOut } from 'lucide-react';
+import { Link, useRouter } from '@tanstack/react-router';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -7,31 +8,29 @@ import { useIsAuthenticated, useLogout } from '../hooks/useAuth';
 
 interface HeaderProps {
   activeTab: string;
-  onTabChange: (tab: string) => void;
   onCreatePost: () => void;
   onLogin: () => void;
 }
 
-export default function Header({ onTabChange, onCreatePost, onLogin }: HeaderProps) {
+export default function Header({ onCreatePost, onLogin }: HeaderProps) {
   const { isAuthenticated, user } = useIsAuthenticated();
   const logoutMutation = useLogout();
+  const router = useRouter();
+  
   return (
     <TooltipProvider>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             {/* 简约Logo */}
-            <div 
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => onTabChange('home')}
-            >
+            <Link to="/" className="flex items-center gap-3 cursor-pointer group">
               <div className="w-9 h-9 bg-black rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-sm">
                 <span className="text-white font-semibold text-sm">L</span>
               </div>
               <h1 className="text-2xl font-light text-black group-hover:text-gray-700 transition-colors">
                 Life
               </h1>
-            </div>
+            </Link>
 
             {/* 中央搜索区 */}
             <div className="flex-1 max-w-lg mx-8">
@@ -41,6 +40,7 @@ export default function Header({ onTabChange, onCreatePost, onLogin }: HeaderPro
                   type="text"
                   placeholder="搜索有趣的内容..."
                   className="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-black/10 focus:bg-white hover:bg-gray-100 transition-all text-sm shadow-sm"
+                  onClick={() => router.navigate({ to: '/search' })}
                 />
               </div>
             </div>
@@ -87,14 +87,13 @@ export default function Header({ onTabChange, onCreatePost, onLogin }: HeaderPro
                   
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Avatar 
-                        className="w-9 h-9 cursor-pointer hover:scale-110 transition-all duration-200 ring-2 ring-gray-100 hover:ring-gray-200"
-                        onClick={() => onTabChange('profile')}
-                      >
-                        <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
-                          {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
-                        </AvatarFallback>
-                      </Avatar>
+                      <Link to="/profile">
+                        <Avatar className="w-9 h-9 cursor-pointer hover:scale-110 transition-all duration-200 ring-2 ring-gray-100 hover:ring-gray-200">
+                          <AvatarFallback className="bg-gray-200 text-gray-700 text-sm font-medium">
+                            {user?.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>{user?.name || '个人资料'}</p>

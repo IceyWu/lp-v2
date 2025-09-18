@@ -6,7 +6,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     tailwindcss(),
-    react(),
+    react({
+      babel: {
+        plugins: ['react-activation/babel']
+      }
+    }),
   ],
   resolve: {
     alias: {
@@ -15,5 +19,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
+  },
+  server: {
+    port: 9527,
   },
 });
