@@ -87,3 +87,9 @@ export const Route = createFileRoute('/your-page')({
 - 个人页 (/profile)
 
 所有页面都已配置好滚动位置缓存功能，无需额外配置即可使用。
+
+之前我在vue项目里通过mapbox实现了"轨迹"这个,板块，我希望你在现在的这个react项目复刻这个功能
+1.调用的接口是(userid是登录的用户id)/api/topic?page=1&size=100&userId=1&exif=true ,数据结构是data.json
+2.vue版本的实现文件也给你了，可以作为参考
+3.图片预览还是采用viewer-pro
+4.包管理器还是pnpm

@@ -1,9 +1,12 @@
-import { Settings, Grid, Heart, Bookmark, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Grid, Heart, Bookmark, Camera, Map } from 'lucide-react';
 import { useIsAuthenticated } from '../hooks/useAuth';
 import LoadingSpinner from './LoadingSpinner';
+import TrackPage from './TrackPage';
 
 export default function ProfilePage() {
   const { user, isLoading } = useIsAuthenticated();
+  const [activeTab, setActiveTab] = useState('posts');
 
   if (isLoading) {
     return (
@@ -32,6 +35,7 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: 'posts', icon: Grid, label: '动态' },
+    { id: 'track', icon: Map, label: '轨迹' },
     { id: 'liked', icon: Heart, label: '喜欢' },
     { id: 'saved', icon: Bookmark, label: '收藏' },
   ];
@@ -78,13 +82,14 @@ export default function ProfilePage() {
       {/* 内容切换标签 */}
       <div className="bg-white rounded-2xl p-1 border border-gray-100">
         <div className="flex">
-          {tabs.map((tab, index) => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
-            const isActive = index === 0; // 默认选中第一个
+            const isActive = activeTab === tab.id;
             
             return (
               <button
                 key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all ${
                   isActive
                     ? 'bg-black text-white'
@@ -99,22 +104,38 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 主要内容区域 - 这里是重点 */}
-      <div className="bg-white rounded-2xl border border-gray-100 min-h-[500px]">
-        {/* 内容网格区域 */}
-        <div className="p-6">
-          <div className="text-center py-20">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Grid size={20} className="text-gray-400" />
+      {/* 主要内容区域 */}
+      {activeTab === 'track' ? (
+        <TrackPage />
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-100 min-h-[500px]">
+          {/* 内容网格区域 */}
+          <div className="p-6">
+            <div className="text-center py-20">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                {activeTab === 'posts' && <Grid size={20} className="text-gray-400" />}
+                {activeTab === 'liked' && <Heart size={20} className="text-gray-400" />}
+                {activeTab === 'saved' && <Bookmark size={20} className="text-gray-400" />}
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {activeTab === 'posts' && '还没有动态'}
+                {activeTab === 'liked' && '还没有喜欢的内容'}
+                {activeTab === 'saved' && '还没有收藏的内容'}
+              </h3>
+              <p className="text-gray-500 text-sm mb-6">
+                {activeTab === 'posts' && '开始分享你的第一个精彩瞬间'}
+                {activeTab === 'liked' && '点赞你喜欢的内容'}
+                {activeTab === 'saved' && '收藏你感兴趣的内容'}
+              </p>
+              {activeTab === 'posts' && (
+                <button className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">
+                  创建动态
+                </button>
+              )}
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">还没有动态</h3>
-            <p className="text-gray-500 text-sm mb-6">开始分享你的第一个精彩瞬间</p>
-            <button className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">
-              创建动态
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
