@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
-import SafeOptimizedImage from './SafeOptimizedImage';
+import OptimizedImage from './OptimizedImage';
 import { PostImage } from '../types';
 
 interface ImageGalleryProps {
@@ -84,7 +84,7 @@ export default function ImageGallery({
               className="relative overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => onImageClick?.(index)}
             >
-              <SafeOptimizedImage
+              <OptimizedImage
                 image={image}
                 className={`${imageClass} object-cover`}
               />
