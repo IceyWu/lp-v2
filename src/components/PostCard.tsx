@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ImageGallery from './ImageGallery';
+import ImagePreview from './ImagePreview';
 import ErrorBoundary from './ErrorBoundary';
 import { Post } from '../types';
 
@@ -16,17 +17,7 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onLike, onSave, onClick }: PostCardProps) {
-  // 计算卡片的动态高度，基于内容和图片
-  const calculateCardHeight = () => {
-    if (post.images.length === 0) return 'auto';
-    
-    // 基于第一张图片的宽高比计算显示高度
-    const firstImage = post.images[0];
-    const cardWidth = 320; // 假设卡片宽度
-    const imageHeight = Math.min((firstImage.height / firstImage.width) * cardWidth, 400);
-    
-    return imageHeight + 200; // 图片高度 + 内容区域高度
-  };
+  const [imagePreviewIndex, setImagePreviewIndex] = useState(-1);
   
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -40,15 +31,20 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
     return `${Math.floor(hours / 24)}天前`;
   };
 
+  const handleImageClick = (index: number) => {
+    setImagePreviewIndex(index);
+  };
+
   return (
-    <Card 
-      className={`w-full overflow-hidden cursor-pointer group border transition-all duration-500 rounded-2xl relative ${
-        post.images.length === 0 
-          ? 'border-gray-200 bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200/50' 
-          : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-xl hover:shadow-black/5'
-      }`}
-      onClick={() => onClick(post.id)}
-    >
+    <>
+      <Card 
+        className={`w-full overflow-hidden cursor-pointer group border transition-all duration-500 rounded-2xl relative ${
+          post.images.length === 0 
+            ? 'border-gray-200 bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200/50' 
+            : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-xl hover:shadow-black/5'
+        }`}
+        onClick={() => onClick(post.id)}
+      >
       {/* 图片部分 */}
       {post.images.length > 0 && (
         <div className="relative overflow-hidden rounded-t-2xl">
@@ -61,6 +57,9 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
               images={post.images} 
               maxDisplay={9}
               className="transition-all duration-500 group-hover:scale-[1.01]"
+              onImageClick={(index) => {
+                handleImageClick(index);
+              }}
             />
           </ErrorBoundary>
           {/* 悬停遮罩 */}
@@ -185,5 +184,16 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
         </Button>
       </CardFooter>
     </Card>
+
+    {/* 图片预览 */}
+    {imagePreviewIndex >= 0 && post.images.length > 0 && (
+      <ImagePreview
+        images={post.images}
+        initialIndex={imagePreviewIndex}
+        isOpen={imagePreviewIndex >= 0}
+        onClose={() => setImagePreviewIndex(-1)}
+      />
+    )}
+  </>
   );
 }

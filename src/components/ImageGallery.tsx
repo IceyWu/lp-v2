@@ -82,7 +82,10 @@ export default function ImageGallery({
             <div 
               key={image.id} 
               className="relative overflow-hidden rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => onImageClick?.(index)}
+              onClick={(e) => {
+                e.stopPropagation(); // 阻止事件冒泡
+                onImageClick?.(index);
+              }}
             >
               <OptimizedImage
                 image={image}
