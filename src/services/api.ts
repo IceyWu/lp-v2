@@ -348,6 +348,35 @@ class ApiService {
   async getLikeStats(topicId: number): Promise<ApiResponse<any>> {
     return this.request(`/api/like/stats/${topicId}`);
   }
+
+  // 获取用户旅行统计
+  async getUserTravelStats(userId: number): Promise<ApiResponse<any>> {
+    return this.request(`/api/user/${userId}/travel-stats`);
+  }
+
+  // 获取用户访问过的城市
+  async getUserCities(userId: number, params?: {
+    page?: number;
+    limit?: number;
+    sortBy?: 'photoCount' | 'lastVisitAt' | 'firstVisitAt';
+    sortOrder?: 'asc' | 'desc';
+    country?: string;
+  }): Promise<ApiResponse<any>> {
+    const searchParams = new URLSearchParams();
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/user/${userId}/cities${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request(endpoint);
+  }
 }
 
 export const apiService = new ApiService();

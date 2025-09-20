@@ -14,7 +14,20 @@
       },
       "disabled": false,
       "autoApprove": [
-        "read_project_oas_ref_resources_wabi87"
+        "read_project_oas_ref_resources_wabi87",
+        "read_project_oas_yu78md",
+        "read_project_oas_ref_resources_yu78md"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "get-library-docs"
       ]
     }
   }

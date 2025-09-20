@@ -40,8 +40,8 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
       <Card 
         className={`w-full overflow-hidden cursor-pointer group border transition-all duration-500 rounded-2xl relative ${
           post.images.length === 0 
-            ? 'border-gray-200 bg-gradient-to-br from-slate-50/50 via-white to-slate-50/50 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-200/50' 
-            : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-xl hover:shadow-black/5'
+            ? 'border-border bg-gradient-to-br from-muted/50 via-background to-muted/50 hover:border-ring hover:shadow-lg' 
+            : 'border-border bg-card hover:border-ring hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-white/5'
         }`}
         onClick={() => onClick(post.id)}
       >
@@ -70,8 +70,8 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
       {/* 纯文本动态的装饰性元素 */}
       {post.images.length === 0 && (
         <div className="absolute top-4 right-4 opacity-10">
-          <div className="w-16 h-16 border-2 border-gray-300 rounded-full flex items-center justify-center">
-            <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+          <div className="w-16 h-16 border-2 border-muted rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-muted rounded-full"></div>
           </div>
         </div>
       )}
@@ -80,15 +80,15 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
       <CardContent className={`${post.images.length === 0 ? 'p-6 relative z-10' : 'p-5'}`}>
         {/* 纯文本动态的引用标记 */}
         {post.images.length === 0 && (
-          <div className="absolute -left-1 top-6 w-1 h-16 bg-gradient-to-b from-gray-300 to-gray-200 rounded-full"></div>
+          <div className="absolute -left-1 top-6 w-1 h-16 bg-gradient-to-b from-muted to-muted/50 rounded-full"></div>
         )}
         
-        <h3 className={`font-semibold text-black mb-3 line-clamp-2 leading-tight group-hover:text-gray-700 transition-colors ${
+        <h3 className={`font-semibold text-foreground mb-3 line-clamp-2 leading-tight group-hover:text-muted-foreground transition-colors ${
           post.images.length === 0 ? 'text-xl' : 'text-lg'
         }`}>
           {post.title}
         </h3>
-        <p className={`text-gray-600 mb-4 leading-relaxed ${
+        <p className={`text-muted-foreground mb-4 leading-relaxed ${
           post.images.length === 0 ? 'line-clamp-5 text-base' : 'line-clamp-3 text-sm'
         }`}>
           {post.content}
@@ -101,7 +101,7 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
               <Badge
                 key={index}
                 variant="secondary"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full transition-colors cursor-pointer"
+                className="bg-secondary hover:bg-secondary/80 text-secondary-foreground text-xs px-3 py-1 rounded-full transition-colors cursor-pointer"
               >
                 #{tag}
               </Badge>
@@ -111,36 +111,36 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
 
         {/* 位置信息 */}
         {post.location && (
-          <div className="flex items-center gap-2 text-gray-500 text-xs mb-4">
-            <MapPin size={14} className="text-gray-400" />
+          <div className="flex items-center gap-2 text-muted-foreground text-xs mb-4">
+            <MapPin size={14} className="text-muted-foreground/70" />
             <span className="font-medium">{post.location}</span>
           </div>
         )}
 
         {/* 用户信息 */}
         <div className="flex items-center gap-3">
-          <Avatar className="w-9 h-9 ring-2 ring-gray-100">
+          <Avatar className="w-9 h-9 ring-2 ring-border">
             <AvatarImage src={post.author.avatar} alt={post.author.name} />
-            <AvatarFallback className="bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700 text-sm font-medium">
+            <AvatarFallback className="bg-gradient-to-br from-muted to-muted/80 text-muted-foreground text-sm font-medium">
               {post.author.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <div className="text-sm font-semibold text-black">{post.author.name}</div>
-            <div className="text-xs text-gray-500">{formatTime(post.createdAt)}</div>
+            <div className="text-sm font-semibold text-foreground">{post.author.name}</div>
+            <div className="text-xs text-muted-foreground">{formatTime(post.createdAt)}</div>
           </div>
         </div>
       </CardContent>
 
       {/* 互动按钮 */}
-      <CardFooter className="flex items-center justify-between pt-4 border-t border-gray-100 px-5 pb-5">
+      <CardFooter className="flex items-center justify-between pt-4 border-t border-border px-5 pb-5">
         <Button
           variant="ghost"
           size="sm"
           className={`flex items-center gap-2 px-3 py-2 text-sm rounded-full transition-all duration-200 ${
             post.isLiked 
-              ? 'text-red-500 bg-red-50 hover:bg-red-100' 
-              : 'text-gray-500 hover:text-red-500 hover:bg-red-50'
+              ? 'text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900' 
+              : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950'
           }`}
           onClick={(e) => {
             e.stopPropagation();
@@ -157,7 +157,7 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
         <Button 
           variant="ghost" 
           size="sm"
-          className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all duration-200"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950 rounded-full transition-all duration-200"
         >
           <MessageCircle size={16} className="hover:scale-110 transition-transform" />
           <span className="font-medium">{post.comments}</span>
@@ -168,8 +168,8 @@ export default function PostCard({ post, onLike, onSave, onClick }: PostCardProp
           size="sm"
           className={`flex items-center gap-2 px-3 py-2 text-sm rounded-full transition-all duration-200 ${
             post.isSaved 
-              ? 'text-amber-600 bg-amber-50 hover:bg-amber-100' 
-              : 'text-gray-500 hover:text-amber-600 hover:bg-amber-50'
+              ? 'text-amber-600 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950 dark:hover:bg-amber-900' 
+              : 'text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950'
           }`}
           onClick={(e) => {
             e.stopPropagation();

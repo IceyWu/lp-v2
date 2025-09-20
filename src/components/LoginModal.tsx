@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useLogin, useRegister } from '../hooks/useAuth';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -61,89 +65,78 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
   const error = currentMutation.error as any;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
             {isLogin ? '登录' : '注册'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full"
-          >
-            <X size={20} />
-          </button>
-        </div>
+          </DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              账号
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="account">账号</Label>
+            <Input
+              id="account"
               type="text"
               value={formData.account}
               onChange={(e) => setFormData({ ...formData, account: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="请输入账号"
               required
             />
           </div>
 
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                用户名
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="name">用户名</Label>
+              <Input
+                id="name"
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="请输入用户名"
                 required
               />
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              密码
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="password">密码</Label>
+            <Input
+              id="password"
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="请输入密码"
               required
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm">
+            <div className="text-destructive text-sm">
               {error.message || '操作失败，请重试'}
             </div>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={currentMutation.isPending}
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 disabled:opacity-50"
+            className="w-full"
           >
             {currentMutation.isPending ? '处理中...' : (isLogin ? '登录' : '注册')}
-          </button>
+          </Button>
         </form>
 
-        <div className="mt-4 text-center">
-          <button
+        <div className="text-center">
+          <Button
+            variant="link"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-blue-500 hover:text-blue-600 text-sm"
+            className="text-sm"
           >
             {isLogin ? '没有账号？去注册' : '已有账号？去登录'}
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
