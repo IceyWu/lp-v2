@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { useIsAuthenticated } from '../hooks/useAuth';
+import type { ReactNode } from "react";
+import { useIsAuthenticated } from "../hooks/useAuth";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -7,7 +7,11 @@ interface AuthGuardProps {
   onUnauthorized?: () => void;
 }
 
-export default function AuthGuard({ children, fallback, onUnauthorized }: AuthGuardProps) {
+export default function AuthGuard({
+  children,
+  fallback,
+  onUnauthorized,
+}: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useIsAuthenticated();
 
   if (isLoading) {

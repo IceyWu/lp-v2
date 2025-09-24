@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import mapboxgl from 'mapbox-gl';
-import MapboxLanguage from '@mapbox/mapbox-gl-language';
-import { customDestr, isEmpty, getLngLat, getCover } from '../utils/map';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import './MapCard.css';
+import MapboxLanguage from "@mapbox/mapbox-gl-language";
+import mapboxgl from "mapbox-gl";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { customDestr, getCover, getLngLat, isEmpty } from "../utils/map";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "./MapCard.css";
 
 interface MapCardLargeProps {
   data: any;
@@ -11,22 +12,28 @@ interface MapCardLargeProps {
   className?: string;
 }
 
-const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, className = "h-64 w-full" }) => {
+const MapCardLarge: React.FC<MapCardLargeProps> = ({
+  data = {},
+  isDark = false,
+  className = "h-64 w-full",
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [hasMapData, setHasMapData] = useState(false);
 
-  const mapStyle = isDark ? 'mapbox://styles/mapbox/dark-v11' : 'mapbox://styles/mapbox/light-v11';
+  const mapStyle = isDark
+    ? "mapbox://styles/mapbox/dark-v11"
+    : "mapbox://styles/mapbox/light-v11";
 
   const getLngLatData = useCallback(() => {
     // 首先尝试从主题的exif数据中获取GPS信息
     const topicExif = customDestr(data.exif, { customVal: {} });
     let lnglat = getLngLat(topicExif);
-    
+
     if (!isEmpty(lnglat)) {
       return lnglat;
     }
-    
+
     // 如果主题没有GPS数据，尝试从文件列表中获取
     if (data.fileList && data.fileList.length > 0) {
       for (const file of data.fileList) {
@@ -34,7 +41,7 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
         if (file.lng && file.lat && file.lng !== 0 && file.lat !== 0) {
           return [file.lng, file.lat];
         }
-        
+
         // 尝试从文件的exif数据中获取
         const fileExif = customDestr(file.exif, { customVal: {} });
         lnglat = getLngLat(fileExif);
@@ -43,7 +50,7 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
         }
       }
     }
-    
+
     return [];
   }, [data]);
 
@@ -54,39 +61,45 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
   }, [mapStyle]);
 
   // 传入坐标，添加标记
-  const addMarker = useCallback((lnglat: number[], data?: any, isSingle?: boolean) => {
-    if (!map.current) return;
+  const addMarker = useCallback(
+    (lnglat: number[], data?: any, isSingle?: boolean) => {
+      if (!map.current) {
+        return;
+      }
 
-    // 添加封面图片标记
-    if (data) {
-      let cover = {};
-      const dot = document.createElement('div');
-      
-      if (isSingle) {
-        const { id } = data;
-        cover = getCover(data) || {};
-        dot.className = `marker-dot-${id} marker-dot`;
+      // 添加封面图片标记
+      if (data) {
+        let cover = {};
+        const dot = document.createElement("div");
+
+        if (isSingle) {
+          const { id } = data;
+          cover = getCover(data) || {};
+          dot.className = `marker-dot-${id} marker-dot`;
+        } else {
+          const { fileList, id } = data;
+          const firstFile = fileList?.[0] || {};
+          cover = getCover(firstFile) || {};
+          dot.className = `marker-dot-${id} marker-dot`;
+        }
+
+        if (cover.preSrc || cover.url) {
+          dot.style.backgroundImage = `url(${cover.preSrc || cover.url})`;
+        } else {
+          // 如果没有封面图片，使用默认样式
+          dot.style.backgroundColor = "#3b82f6";
+          dot.innerHTML =
+            '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">📍</div>';
+        }
+
+        new mapboxgl.Marker(dot).setLngLat(lnglat).addTo(map.current);
       } else {
-        const { fileList, id } = data;
-        const firstFile = fileList?.[0] || {};
-        cover = getCover(firstFile) || {};
-        dot.className = `marker-dot-${id} marker-dot`;
+        // 默认标记
+        new mapboxgl.Marker().setLngLat(lnglat).addTo(map.current);
       }
-      
-      if (cover.preSrc || cover.url) {
-        dot.style.backgroundImage = `url(${cover.preSrc || cover.url})`;
-      } else {
-        // 如果没有封面图片，使用默认样式
-        dot.style.backgroundColor = '#3b82f6';
-        dot.innerHTML = '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">📍</div>';
-      }
-      
-      new mapboxgl.Marker(dot).setLngLat(lnglat).addTo(map.current);
-    } else {
-      // 默认标记
-      new mapboxgl.Marker().setLngLat(lnglat).addTo(map.current);
-    }
-  }, []);
+    },
+    []
+  );
 
   const initMap = useCallback(() => {
     const lnglat = getLngLatData();
@@ -95,7 +108,8 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
     }
 
     // 设置Mapbox访问令牌
-    mapboxgl.accessToken = 'pk.eyJ1IjoidnlrYXd6YXRpcyIsImEiOiJjbHJycm1lYXAwaGxhMmlvMWhwZTA3Zmg2In0.eo2EYOK6v0smB1IRunC8VA';
+    mapboxgl.accessToken =
+      "pk.eyJ1IjoidnlrYXd6YXRpcyIsImEiOiJjbHJycm1lYXAwaGxhMmlvMWhwZTA3Zmg2In0.eo2EYOK6v0smB1IRunC8VA";
 
     const basePos = {
       center: lnglat as [number, number],
@@ -112,22 +126,20 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
       });
 
       // 添加错误处理
-      map.current.on('error', (e) => {
-        console.error('Mapbox error:', e);
-      });
+      map.current.on("error", (_e) => {});
 
       // 添加中文语言支持
-      map.current.addControl(new MapboxLanguage({ defaultLanguage: 'zh-Hans' }));
-      
-      // 添加导航控制
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.current.addControl(
+        new MapboxLanguage({ defaultLanguage: "zh-Hans" })
+      );
 
-      map.current.on('load', () => {
+      // 添加导航控制
+      map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+      map.current.on("load", () => {
         addMarker(basePos.center, data, true);
       });
-    } catch (error) {
-      console.error('Failed to initialize map:', error);
-    }
+    } catch (_error) {}
 
     return () => {
       if (map.current) {
@@ -149,13 +161,13 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
     }
 
     setHasMapData(true);
-    
+
     // 如果地图已存在，先清理
     if (map.current) {
       map.current.remove();
       map.current = null;
     }
-    
+
     // 重新初始化
     initMap();
   }, [getLngLatData, initMap]);
@@ -163,7 +175,7 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
   useEffect(() => {
     const lnglat = getLngLatData();
     setHasMapData(!isEmpty(lnglat));
-    
+
     if (!isEmpty(lnglat)) {
       // 添加一个小延迟确保DOM完全渲染
       setTimeout(() => {
@@ -185,22 +197,21 @@ const MapCardLarge: React.FC<MapCardLargeProps> = ({ data = {}, isDark = false, 
 
   useEffect(() => {
     resetMarker();
-  }, [data, resetMarker]);
+  }, [resetMarker]);
 
   if (!hasMapData) {
     return (
-      <div className={`${className} rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center`}>
+      <div
+        className={`${className} flex items-center justify-center overflow-hidden rounded-xl bg-gray-100`}
+      >
         <p className="text-gray-500">无GPS数据</p>
       </div>
     );
   }
 
   return (
-    <div className={`${className} rounded-xl overflow-hidden`}>
-      <div 
-        ref={mapContainer} 
-        className="map-temp-box h-full w-full relative"
-      />
+    <div className={`${className} overflow-hidden rounded-xl`}>
+      <div className="map-temp-box relative h-full w-full" ref={mapContainer} />
     </div>
   );
 };

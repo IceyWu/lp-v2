@@ -1,8 +1,8 @@
-import { useEffect, useRef, useCallback } from 'react';
-import ResponsiveMasonry from './ResponsiveMasonry';
-import PostCard from './PostCard';
-import LoadingSpinner from './LoadingSpinner';
-import { Post } from '../types';
+import { useCallback, useEffect, useRef } from "react";
+import type { Post } from "../types";
+import LoadingSpinner from "./LoadingSpinner";
+import PostCard from "./PostCard";
+import ResponsiveMasonry from "./ResponsiveMasonry";
 
 interface SimpleInfiniteScrollProps {
   posts: Post[];
@@ -23,33 +23,38 @@ export default function SimpleInfiniteScroll({
   onLike,
   onSave,
   onPostClick,
-  className = ''
+  className = "",
 }: SimpleInfiniteScrollProps) {
   const loadingRef = useRef<HTMLDivElement>(null);
 
-  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    const target = entries[0];
-    if (target.isIntersecting && hasMore && !isLoading) {
-      onLoadMore();
-    }
-  }, [hasMore, isLoading, onLoadMore]);
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const target = entries[0];
+      if (target.isIntersecting && hasMore && !isLoading) {
+        onLoadMore();
+      }
+    },
+    [hasMore, isLoading, onLoadMore]
+  );
 
   useEffect(() => {
     const option = {
       root: null,
-      rootMargin: '100px',
-      threshold: 0
+      rootMargin: "100px",
+      threshold: 0,
     };
-    
+
     const observer = new IntersectionObserver(handleObserver, option);
-    if (loadingRef.current) observer.observe(loadingRef.current);
-    
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
+    }
+
     return () => observer.disconnect();
   }, [handleObserver]);
 
   if (posts.length === 0 && !isLoading) {
     return (
-      <div className="text-center py-20">
+      <div className="py-20 text-center">
         <p className="text-gray-500">暂无内容</p>
       </div>
     );
@@ -61,16 +66,16 @@ export default function SimpleInfiniteScroll({
         {posts.map((post) => (
           <PostCard
             key={post.id}
-            post={post}
+            onClick={onPostClick}
             onLike={onLike}
             onSave={onSave}
-            onClick={onPostClick}
+            post={post}
           />
         ))}
       </ResponsiveMasonry>
-      
+
       {/* 加载触发器 */}
-      <div ref={loadingRef} className="text-center py-8">
+      <div className="py-8 text-center" ref={loadingRef}>
         {isLoading && (
           <div className="flex flex-col items-center gap-2">
             <LoadingSpinner size="md" />

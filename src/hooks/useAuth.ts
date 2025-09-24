@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, ApiUser } from '../services/api';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiService } from "../services/api";
 
 // 获取当前用户信息的hook
 export const useCurrentUser = () => {
   return useQuery({
-    queryKey: ['currentUser'],
+    queryKey: ["currentUser"],
     queryFn: async () => {
       try {
         const response = await apiService.getCurrentUser();
@@ -12,9 +12,7 @@ export const useCurrentUser = () => {
           return response.result;
         }
         return null;
-      } catch (error) {
-        // 如果未登录或token无效，返回null而不是抛出错误
-        console.log('用户未登录或token无效');
+      } catch (_error) {
         return null;
       }
     },
@@ -36,16 +34,20 @@ export const useIsAuthenticated = () => {
 // 登录hook
 export const useLogin = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ account, password }: { account: string; password: string }) => {
-      return await apiService.login(account, password);
-    },
+    mutationFn: async ({
+      account,
+      password,
+    }: {
+      account: string;
+      password: string;
+    }) => await apiService.login(account, password),
     onSuccess: (data) => {
       if (data.code === 200 && data.result) {
         // 登录成功后，刷新当前用户信息
-        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        queryClient.invalidateQueries({ queryKey: ['topics'] });
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        queryClient.invalidateQueries({ queryKey: ["topics"] });
       }
     },
   });
@@ -54,16 +56,22 @@ export const useLogin = () => {
 // 注册hook
 export const useRegister = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ account, password, name }: { account: string; password: string; name: string }) => {
-      return await apiService.register(account, password, name);
-    },
+    mutationFn: async ({
+      account,
+      password,
+      name,
+    }: {
+      account: string;
+      password: string;
+      name: string;
+    }) => await apiService.register(account, password, name),
     onSuccess: (data) => {
       if (data.code === 200 && data.result) {
         // 注册成功后，刷新当前用户信息
-        queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-        queryClient.invalidateQueries({ queryKey: ['topics'] });
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        queryClient.invalidateQueries({ queryKey: ["topics"] });
       }
     },
   });
@@ -72,15 +80,15 @@ export const useRegister = () => {
 // 登出hook
 export const useLogout = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async () => {
       await apiService.logout();
     },
     onSuccess: () => {
       // 清除所有用户相关的缓存
-      queryClient.setQueryData(['currentUser'], null);
-      queryClient.invalidateQueries({ queryKey: ['topics'] });
+      queryClient.setQueryData(["currentUser"], null);
+      queryClient.invalidateQueries({ queryKey: ["topics"] });
       queryClient.clear(); // 清除所有缓存
     },
   });

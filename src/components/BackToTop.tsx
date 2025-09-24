@@ -1,26 +1,27 @@
-import { useState, useEffect } from 'react';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function BackToTop() {
   const [isVisible, setIsVisible] = useState(false);
+  const VISIBILITY_THRESHOLD = 300;
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
+      if (window.pageYOffset > VISIBILITY_THRESHOLD) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
       }
     };
 
-    window.addEventListener('scroll', toggleVisibility);
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
@@ -30,13 +31,14 @@ export default function BackToTop() {
 
   return (
     <button
-      onClick={scrollToTop}
-      className="fixed bottom-24 right-6 z-50 p-3 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
       aria-label="回到顶部"
+      className="group fixed right-6 bottom-24 z-50 rounded-full border border-gray-200 bg-white p-3 shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl"
+      onClick={scrollToTop}
+      type="button"
     >
-      <ChevronUp 
-        size={20} 
-        className="text-gray-600 group-hover:text-gray-800 transition-colors" 
+      <ChevronUp
+        className="text-gray-600 transition-colors group-hover:text-gray-800"
+        size={20}
       />
     </button>
   );

@@ -1,11 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/api';
-import { Post, PostImage } from '../types';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiService } from "../services/api";
+import type { Post, PostImage } from "../types";
 
 // 将API话题数据转换为前端Post类型（复用之前的逻辑）
 const transformApiTopicToPost = (apiTopic: any): Post => {
   const images: PostImage[] = apiTopic.fileList
-    .filter((file: any) => file.type.startsWith('image/'))
+    .filter((file: any) => file.type.startsWith("image/"))
     .map((file: any) => ({
       id: file.id,
       url: file.url,
@@ -18,12 +18,13 @@ const transformApiTopicToPost = (apiTopic: any): Post => {
 
   const tags = apiTopic.TopicTag.map((topicTag: any) => topicTag.tag.title);
 
-  const avatar = apiTopic.User.avatarInfo?.url || 
-    `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100`;
+  const avatar =
+    apiTopic.User.avatarInfo?.url ||
+    "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100";
 
-  const location = apiTopic.User.ipInfo ? 
-    `${apiTopic.User.ipInfo.city}·${apiTopic.User.ipInfo.regionName}` : 
-    undefined;
+  const location = apiTopic.User.ipInfo
+    ? `${apiTopic.User.ipInfo.city}·${apiTopic.User.ipInfo.regionName}`
+    : undefined;
 
   return {
     id: String(apiTopic.id),
@@ -46,25 +47,24 @@ const transformApiTopicToPost = (apiTopic: any): Post => {
 };
 
 // 获取话题详情的hook
-export const useTopicDetail = (id: number, userId?: number) => {
-  return useQuery({
-    queryKey: ['topic', id, userId],
+export const useTopicDetail = (id: number, userId?: number) =>
+  useQuery({
+    queryKey: ["topic", id, userId],
     queryFn: async () => {
       const response = await apiService.getTopicDetail(id, userId, true);
       if (response.code === 200 && response.result) {
         return transformApiTopicToPost(response.result);
       }
-      throw new Error(response.message || '获取话题详情失败');
+      throw new Error(response.message || "获取话题详情失败");
     },
     staleTime: 5 * 60 * 1000,
     retry: 2,
   });
-};
 
 // 获取评论列表的hook
-export const useComments = (topicId: number) => {
-  return useQuery({
-    queryKey: ['comments', topicId],
+export const useComments = (topicId: number) =>
+  useQuery({
+    queryKey: ["comments", topicId],
     queryFn: async () => {
       const response = await apiService.getComments({
         topicId,
@@ -74,12 +74,11 @@ export const useComments = (topicId: number) => {
       if (response.code === 200 && response.result) {
         return response.result.data;
       }
-      throw new Error(response.message || '获取评论失败');
+      throw new Error(response.message || "获取评论失败");
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,
   });
-};
 
 // 创建评论的hook
 export const useCreateComment = () => {
@@ -95,14 +94,14 @@ export const useCreateComment = () => {
       if (response.code === 200) {
         return response.result;
       }
-      throw new Error(response.message || '创建评论失败');
+      throw new Error(response.message || "创建评论失败");
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // 刷新评论列表
-      queryClient.invalidateQueries({ queryKey: ['comments', variables.topicId] });
+      queryClient.invalidateQueries({
+        queryKey: ["comments", variables.topicId],
+      });
     },
-    onError: (error) => {
-      console.error('创建评论失败:', error);
-    },
+    onError: (_error) => {},
   });
 };

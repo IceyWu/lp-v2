@@ -1,13 +1,18 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
-import { apiService, ApiTopic, PaginatedResponse } from '../services/api';
-import { Post, PostImage } from '../types';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { type ApiTopic, apiService } from "../services/api";
+import type { Post, PostImage } from "../types";
 
 // 将API话题数据转换为前端Post类型
 const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
   // 提取图片信息，包含完整的元数据
   const images: PostImage[] = apiTopic.fileList
-    .filter(file => file.type.startsWith('image/'))
-    .map(file => ({
+    .filter((file) => file.type.startsWith("image/"))
+    .map((file) => ({
       id: file.id,
       url: file.url,
       width: file.width,
@@ -18,16 +23,17 @@ const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
     }));
 
   // 提取标签
-  const tags = apiTopic.TopicTag.map(topicTag => topicTag.tag.title);
+  const tags = apiTopic.TopicTag.map((topicTag) => topicTag.tag.title);
 
   // 构建用户头像URL
-  const avatar = apiTopic.User.avatarInfo?.url || 
-    `https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100`;
+  const avatar =
+    apiTopic.User.avatarInfo?.url ||
+    "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100";
 
   // 构建位置信息
-  const location = apiTopic.User.ipInfo ? 
-    `${apiTopic.User.ipInfo.city}·${apiTopic.User.ipInfo.regionName}` : 
-    undefined;
+  const location = apiTopic.User.ipInfo
+    ? `${apiTopic.User.ipInfo.city}·${apiTopic.User.ipInfo.regionName}`
+    : undefined;
 
   return {
     id: String(apiTopic.id),
@@ -60,14 +66,14 @@ export const useInfiniteTopics = (params?: {
   exif?: boolean;
 }) => {
   return useInfiniteQuery({
-    queryKey: ['topics', 'infinite', params],
+    queryKey: ["topics", "infinite", params],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await apiService.getTopics({
         ...params,
         page: pageParam,
         size: params?.size || 20,
       });
-      
+
       if (response.code === 200 && response.result) {
         return {
           items: response.result.data.map(transformApiTopicToPost),
@@ -75,14 +81,14 @@ export const useInfiniteTopics = (params?: {
           page: response.result.meta.current_page,
           size: response.result.meta.size,
           totalPages: response.result.meta.totalPages,
-          hasNextPage: response.result.meta.current_page < response.result.meta.totalPages,
+          hasNextPage:
+            response.result.meta.current_page < response.result.meta.totalPages,
         };
       }
-      throw new Error(response.message || '获取话题列表失败');
+      throw new Error(response.message || "获取话题列表失败");
     },
-    getNextPageParam: (lastPage) => {
-      return lastPage.hasNextPage ? lastPage.page + 1 : undefined;
-    },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.page + 1 : undefined,
     staleTime: 10 * 60 * 1000, // 增加到10分钟
     gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
     retry: 2,
@@ -102,7 +108,7 @@ export const useTopics = (params?: {
   exif?: boolean;
 }) => {
   return useQuery({
-    queryKey: ['topics', params],
+    queryKey: ["topics", params],
     queryFn: async () => {
       const response = await apiService.getTopics(params);
       if (response.code === 200 && response.result) {
@@ -114,7 +120,7 @@ export const useTopics = (params?: {
           totalPages: response.result.meta.totalPages,
         };
       }
-      throw new Error(response.message || '获取话题列表失败');
+      throw new Error(response.message || "获取话题列表失败");
     },
     staleTime: 10 * 60 * 1000, // 10分钟内数据被认为是新鲜的
     gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
@@ -128,18 +134,25 @@ export const useLikeTopic = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ topicId, isLiked }: { topicId: number; isLiked: boolean }) => {
+    mutationFn: async ({
+      topicId,
+      isLiked,
+    }: {
+      topicId: number;
+      isLiked: boolean;
+    }) => {
       if (isLiked) {
         return await apiService.unlikeTopic(topicId);
-      } else {
-        return await apiService.likeTopic(topicId);
       }
+      return await apiService.likeTopic(topicId);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // 更新缓存中的话题数据
-      queryClient.setQueryData(['topics'], (oldData: any) => {
-        if (!oldData) return oldData;
-        
+      queryClient.setQueryData(["topics"], (oldData: any) => {
+        if (!oldData) {
+          return oldData;
+        }
+
         return {
           ...oldData,
           items: oldData.items.map((post: Post) => {
@@ -156,9 +169,11 @@ export const useLikeTopic = () => {
       });
 
       // 也更新无限查询的缓存
-      queryClient.setQueryData(['topics', 'infinite'], (oldData: any) => {
-        if (!oldData) return oldData;
-        
+      queryClient.setQueryData(["topics", "infinite"], (oldData: any) => {
+        if (!oldData) {
+          return oldData;
+        }
+
         return {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
@@ -177,9 +192,7 @@ export const useLikeTopic = () => {
         };
       });
     },
-    onError: (error) => {
-      console.error('点赞操作失败:', error);
-    },
+    onError: (_error) => {},
   });
 };
 
@@ -199,13 +212,21 @@ export const useCreateTopic = () => {
       if (response.code === 200 && response.result) {
         return transformApiTopicToPost(response.result);
       }
-      throw new Error(response.message || '创建话题失败');
+      throw new Error(response.message || "创建话题失败");
     },
     onSuccess: (newPost) => {
       // 将新话题添加到普通查询缓存的开头
-      queryClient.setQueryData(['topics'], (oldData: any) => {
-        if (!oldData) return { items: [newPost], total: 1, page: 1, size: 10, totalPages: 1 };
-        
+      queryClient.setQueryData(["topics"], (oldData: any) => {
+        if (!oldData) {
+          return {
+            items: [newPost],
+            total: 1,
+            page: 1,
+            size: 10,
+            totalPages: 1,
+          };
+        }
+
         return {
           ...oldData,
           items: [newPost, ...oldData.items],
@@ -214,10 +235,8 @@ export const useCreateTopic = () => {
       });
 
       // 将新话题添加到无限查询缓存的开头
-      queryClient.invalidateQueries({ queryKey: ['topics', 'infinite'] });
+      queryClient.invalidateQueries({ queryKey: ["topics", "infinite"] });
     },
-    onError: (error) => {
-      console.error('创建话题失败:', error);
-    },
+    onError: (_error) => {},
   });
 };

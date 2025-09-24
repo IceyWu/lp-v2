@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite"],
+  "linter": {
+    "enabled": false,
+    "rules": {
+      "style": {
+        // 项目使用 PascalCase 文件名（React 组件惯例），关闭该规则以避免大量噪声
+        "useFilenamingConvention": "off",
+        // Tailwind 配置与部分对象键需要特定命名（如 DEFAULT），全局关闭命名校验以减少噪声
+        "useNamingConvention": "off",
+        // 允许直接使用常量数字（UI 尺寸、计数等）
+        "noMagicNumbers": "off",
+        // 允许嵌套三元，后续可择机重构
+        "noNestedTernary": "off",
+        // 允许 for 循环
+        "useForOf": "off"
+      },
+      "nursery": {
+        // 避免对 TS interface 与 type 的强制统一（有些声明合并必须使用 interface）
+        "useConsistentTypeDefinitions": "off"
+      },
+      "suspicious": {
+        // 暂时允许 any，后续逐步补强类型
+        "noExplicitAny": "off",
+        // 允许无 await 的 async（API 包装器会直接返回 Promise）
+        "useAwait": "off",
+        // 允许数组下标作为 key（部分布局组件无法稳定提供 id）
+        "noArrayIndexKey": "off",
+        // 允许空代码块
+        "noEmptyBlockStatements": "off",
+        // 允许使用受限全局名（如 Map 图标）
+        "noShadowRestrictedNames": "off"
+      },
+      "complexity": {
+        // 暂时放宽复杂度限制，后续分解函数
+        "noExcessiveCognitiveComplexity": "off",
+        // 允许 forEach，后续再统一替换
+        "noForEach": "off"
+      }
+    }
+  }
+}

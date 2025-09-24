@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-import { Settings, Grid, Heart, Bookmark, Camera, Map } from 'lucide-react';
-import { useIsAuthenticated } from '../hooks/useAuth';
-import LoadingSpinner from './LoadingSpinner';
-import TrackPage from './TrackPage';
+import { Bookmark, Camera, Grid, Heart, Map, Settings } from "lucide-react";
+import { useState } from "react";
+import { useIsAuthenticated } from "../hooks/useAuth";
+import LoadingSpinner from "./LoadingSpinner";
+import TrackPage from "./TrackPage";
 
 export default function ProfilePage() {
   const { user, isLoading } = useIsAuthenticated();
-  const [activeTab, setActiveTab] = useState('posts');
+  const [activeTab, setActiveTab] = useState("posts");
 
   if (isLoading) {
     return (
@@ -28,73 +28,82 @@ export default function ProfilePage() {
 
   // 模拟统计数据，后续可以通过API获取
   const stats = [
-    { label: '动态', value: '0' },
-    { label: '关注', value: '0' },
-    { label: '粉丝', value: '0' },
+    { label: "动态", value: "0" },
+    { label: "关注", value: "0" },
+    { label: "粉丝", value: "0" },
   ];
 
   const tabs = [
-    { id: 'posts', icon: Grid, label: '动态' },
-    { id: 'track', icon: Map, label: '轨迹' },
-    { id: 'liked', icon: Heart, label: '喜欢' },
-    { id: 'saved', icon: Bookmark, label: '收藏' },
+    { id: "posts", icon: Grid, label: "动态" },
+    { id: "track", icon: Map, label: "轨迹" },
+    { id: "liked", icon: Heart, label: "喜欢" },
+    { id: "saved", icon: Bookmark, label: "收藏" },
   ];
 
   return (
     <div className="space-y-6">
       {/* 紧凑的个人信息区域 */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
+      <div className="rounded-2xl border border-gray-100 bg-white p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
               <img
-                src={user.avatarInfo?.url || "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"}
                 alt="Avatar"
-                className="w-16 h-16 rounded-full object-cover"
+                className="h-16 w-16 rounded-full object-cover"
+                src={
+                  user.avatarInfo?.url ||
+                  "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"
+                }
               />
-              <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-black rounded-full flex items-center justify-center text-white">
+              <button className="-bottom-1 -right-1 absolute flex h-6 w-6 items-center justify-center rounded-full bg-black text-white">
                 <Camera size={12} />
               </button>
             </div>
-            
+
             <div>
-              <h1 className="text-xl font-semibold text-black">{user.name || user.account}</h1>
-              <p className="text-sm text-gray-600">{user.signature || '记录生活中的美好时光 ✨'}</p>
+              <h1 className="font-semibold text-black text-xl">
+                {user.name || user.account}
+              </h1>
+              <p className="text-gray-600 text-sm">
+                {user.signature || "记录生活中的美好时光 ✨"}
+              </p>
             </div>
           </div>
-          
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Settings size={18} className="text-gray-500" />
+
+          <button className="rounded-full p-2 transition-colors hover:bg-gray-100">
+            <Settings className="text-gray-500" size={18} />
           </button>
         </div>
 
         {/* 紧凑的统计数据 */}
-        <div className="flex justify-around mt-6 pt-4 border-t border-gray-100">
+        <div className="mt-6 flex justify-around border-gray-100 border-t pt-4">
           {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-xl font-semibold text-black">{stat.value}</div>
-              <div className="text-xs text-gray-500">{stat.label}</div>
+            <div className="text-center" key={index}>
+              <div className="font-semibold text-black text-xl">
+                {stat.value}
+              </div>
+              <div className="text-gray-500 text-xs">{stat.label}</div>
             </div>
           ))}
         </div>
       </div>
 
       {/* 内容切换标签 */}
-      <div className="bg-white rounded-2xl p-1 border border-gray-100">
+      <div className="rounded-2xl border border-gray-100 bg-white p-1">
         <div className="flex">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            
+
             return (
               <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 transition-all ${
+                  isActive
+                    ? "bg-black text-white"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                }`}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all ${
-                  isActive
-                    ? 'bg-black text-white'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
               >
                 <Icon size={16} />
                 <span className="font-medium text-sm">{tab.label}</span>
@@ -105,30 +114,36 @@ export default function ProfilePage() {
       </div>
 
       {/* 主要内容区域 */}
-      {activeTab === 'track' ? (
+      {activeTab === "track" ? (
         <TrackPage />
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 min-h-[500px]">
+        <div className="min-h-[500px] rounded-2xl border border-gray-100 bg-white">
           {/* 内容网格区域 */}
           <div className="p-6">
-            <div className="text-center py-20">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                {activeTab === 'posts' && <Grid size={20} className="text-gray-400" />}
-                {activeTab === 'liked' && <Heart size={20} className="text-gray-400" />}
-                {activeTab === 'saved' && <Bookmark size={20} className="text-gray-400" />}
+            <div className="py-20 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                {activeTab === "posts" && (
+                  <Grid className="text-gray-400" size={20} />
+                )}
+                {activeTab === "liked" && (
+                  <Heart className="text-gray-400" size={20} />
+                )}
+                {activeTab === "saved" && (
+                  <Bookmark className="text-gray-400" size={20} />
+                )}
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {activeTab === 'posts' && '还没有动态'}
-                {activeTab === 'liked' && '还没有喜欢的内容'}
-                {activeTab === 'saved' && '还没有收藏的内容'}
+              <h3 className="mb-2 font-medium text-gray-900 text-lg">
+                {activeTab === "posts" && "还没有动态"}
+                {activeTab === "liked" && "还没有喜欢的内容"}
+                {activeTab === "saved" && "还没有收藏的内容"}
               </h3>
-              <p className="text-gray-500 text-sm mb-6">
-                {activeTab === 'posts' && '开始分享你的第一个精彩瞬间'}
-                {activeTab === 'liked' && '点赞你喜欢的内容'}
-                {activeTab === 'saved' && '收藏你感兴趣的内容'}
+              <p className="mb-6 text-gray-500 text-sm">
+                {activeTab === "posts" && "开始分享你的第一个精彩瞬间"}
+                {activeTab === "liked" && "点赞你喜欢的内容"}
+                {activeTab === "saved" && "收藏你感兴趣的内容"}
               </p>
-              {activeTab === 'posts' && (
-                <button className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">
+              {activeTab === "posts" && (
+                <button className="rounded-full bg-black px-6 py-2 font-medium text-sm text-white transition-colors hover:bg-gray-800">
                   创建动态
                 </button>
               )}

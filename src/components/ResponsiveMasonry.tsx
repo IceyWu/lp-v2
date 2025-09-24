@@ -1,5 +1,5 @@
-import { ReactNode, useEffect, useState } from 'react';
-import MasonryLayout from './MasonryLayout';
+import { type ReactNode, useEffect, useState } from "react";
+import MasonryLayout from "./MasonryLayout";
 
 interface ResponsiveMasonryProps {
   children: ReactNode[];
@@ -7,10 +7,10 @@ interface ResponsiveMasonryProps {
   className?: string;
 }
 
-export default function ResponsiveMasonry({ 
-  children, 
-  gap = 16, 
-  className = '' 
+export default function ResponsiveMasonry({
+  children,
+  gap = 16,
+  className = "",
 }: ResponsiveMasonryProps) {
   const [columns, setColumns] = useState(3);
 
@@ -29,15 +29,15 @@ export default function ResponsiveMasonry({
     };
 
     updateColumns();
-    window.addEventListener('resize', updateColumns);
-    return () => window.removeEventListener('resize', updateColumns);
+    window.addEventListener("resize", updateColumns);
+    return () => window.removeEventListener("resize", updateColumns);
   }, []);
 
   return (
-    <MasonryLayout 
-      columns={columns} 
-      gap={gap} 
+    <MasonryLayout
       className={`w-full ${className}`}
+      columns={columns}
+      gap={gap}
     >
       {children}
     </MasonryLayout>

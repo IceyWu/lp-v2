@@ -1,10 +1,14 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
-import { useLogin, useRegister } from '../hooks/useAuth';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { useLogin, useRegister } from "../hooks/useAuth";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,18 +16,24 @@ interface LoginModalProps {
   onSuccess: () => void;
 }
 
-export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalProps) {
+export default function LoginModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: LoginModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    account: '',
-    password: '',
-    name: '',
+    account: "",
+    password: "",
+    name: "",
   });
 
   const loginMutation = useLogin();
   const registerMutation = useRegister();
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +44,12 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
           account: formData.account,
           password: formData.password,
         });
-        
+
         if (result.code === 200) {
           onSuccess();
           onClose();
           // 重置表单
-          setFormData({ account: '', password: '', name: '' });
+          setFormData({ account: "", password: "", name: "" });
         }
       } else {
         const result = await registerMutation.mutateAsync({
@@ -47,17 +57,16 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
           password: formData.password,
           name: formData.name,
         });
-        
+
         if (result.code === 200) {
           onSuccess();
           onClose();
           // 重置表单
-          setFormData({ account: '', password: '', name: '' });
+          setFormData({ account: "", password: "", name: "" });
         }
       }
-    } catch (error) {
-      // 错误已经在mutation中处理
-      console.error('认证失败:', error);
+    } catch (_error) {
+      // intentionally swallow error; user feedback handled via mutation error state
     }
   };
 
@@ -65,24 +74,24 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
   const error = currentMutation.error as any;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog onOpenChange={onClose} open={isOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {isLogin ? '登录' : '注册'}
-          </DialogTitle>
+          <DialogTitle>{isLogin ? "登录" : "注册"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="account">账号</Label>
             <Input
               id="account"
-              type="text"
-              value={formData.account}
-              onChange={(e) => setFormData({ ...formData, account: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, account: e.target.value })
+              }
               placeholder="请输入账号"
               required
+              type="text"
+              value={formData.account}
             />
           </div>
 
@@ -91,11 +100,13 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
               <Label htmlFor="name">用户名</Label>
               <Input
                 id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="请输入用户名"
                 required
+                type="text"
+                value={formData.name}
               />
             </div>
           )}
@@ -104,36 +115,42 @@ export default function LoginModal({ isOpen, onClose, onSuccess }: LoginModalPro
             <Label htmlFor="password">密码</Label>
             <Input
               id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               placeholder="请输入密码"
               required
+              type="password"
+              value={formData.password}
             />
           </div>
 
           {error && (
             <div className="text-destructive text-sm">
-              {error.message || '操作失败，请重试'}
+              {error.message || "操作失败，请重试"}
             </div>
           )}
 
           <Button
-            type="submit"
-            disabled={currentMutation.isPending}
             className="w-full"
+            disabled={currentMutation.isPending}
+            type="submit"
           >
-            {currentMutation.isPending ? '处理中...' : (isLogin ? '登录' : '注册')}
+            {currentMutation.isPending
+              ? "处理中..."
+              : isLogin
+                ? "登录"
+                : "注册"}
           </Button>
         </form>
 
         <div className="text-center">
           <Button
-            variant="link"
-            onClick={() => setIsLogin(!isLogin)}
             className="text-sm"
+            onClick={() => setIsLogin(!isLogin)}
+            variant="link"
           >
-            {isLogin ? '没有账号？去注册' : '已有账号？去登录'}
+            {isLogin ? "没有账号？去注册" : "已有账号？去登录"}
           </Button>
         </div>
       </DialogContent>

@@ -1,50 +1,62 @@
-import { useState, ReactNode } from 'react'
-import Header from './Header'
-import CreatePostModal from './CreatePostModal'
-import FloatingNavBar from './FloatingNavBar'
-import LoginModal from './LoginModal'
-import BackToTop from './BackToTop'
-import { useIsAuthenticated } from '../hooks/useAuth'
-import { useCreateTopic } from '../hooks/useTopics'
-import { Post } from '../types'
+import { type ReactNode, useState } from "react";
+import { useIsAuthenticated } from "../hooks/useAuth";
+import { useCreateTopic } from "../hooks/useTopics";
+import type { Post } from "../types";
+import BackToTop from "./BackToTop";
+import CreatePostModal from "./CreatePostModal";
+import FloatingNavBar from "./FloatingNavBar";
+import Header from "./Header";
+import LoginModal from "./LoginModal";
 
 interface PageLayoutProps {
-  activeTab: 'home' | 'trending' | 'search' | 'likes' | 'saved' | 'profile'
-  children: ReactNode
-  requireAuth?: boolean
-  authFallback?: ReactNode
+  activeTab: "home" | "trending" | "search" | "likes" | "saved" | "profile";
+  children: ReactNode;
+  requireAuth?: boolean;
+  authFallback?: ReactNode;
 }
 
-export default function PageLayout({ 
-  activeTab, 
-  children, 
-  requireAuth = false, 
-  authFallback 
+export default function PageLayout({
+  activeTab,
+  children,
+  requireAuth = false,
+  authFallback,
 }: PageLayoutProps) {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  const { isAuthenticated } = useIsAuthenticated()
-  const createTopicMutation = useCreateTopic()
+  const { isAuthenticated } = useIsAuthenticated();
+  const createTopicMutation = useCreateTopic();
 
-  const handleCreatePost = (postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => {
+  const handleCreatePost = (
+    postData: Omit<
+      Post,
+      | "id"
+      | "author"
+      | "likes"
+      | "comments"
+      | "saves"
+      | "isLiked"
+      | "isSaved"
+      | "createdAt"
+    >
+  ) => {
     if (!isAuthenticated) {
-      setIsLoginModalOpen(true)
-      return
+      setIsLoginModalOpen(true);
+      return;
     }
 
     createTopicMutation.mutate({
       title: postData.title,
       content: postData.content,
-      images: postData.images.map(img => img.url),
+      images: postData.images.map((img) => img.url),
       tags: postData.tags,
       location: postData.location,
-    })
-  }
+    });
+  };
 
   const handleLoginSuccess = () => {
     // 登录成功后的处理
-  }
+  };
 
   if (requireAuth && !isAuthenticated && authFallback) {
     return (
@@ -54,10 +66,8 @@ export default function PageLayout({
           onCreatePost={() => setIsCreateModalOpen(true)}
           onLogin={() => setIsLoginModalOpen(true)}
         />
-        <main className="pt-20 min-h-screen pb-24">
-          <div className="max-w-6xl mx-auto px-8 py-8">
-            {authFallback}
-          </div>
+        <main className="min-h-screen pt-20 pb-24">
+          <div className="mx-auto max-w-6xl px-8 py-8">{authFallback}</div>
         </main>
         <FloatingNavBar
           activeTab={activeTab}
@@ -69,7 +79,7 @@ export default function PageLayout({
           onSuccess={handleLoginSuccess}
         />
       </>
-    )
+    );
   }
 
   return (
@@ -77,18 +87,16 @@ export default function PageLayout({
       <Header
         activeTab={activeTab}
         onCreatePost={() => {
-          if (!isAuthenticated) {
-            setIsLoginModalOpen(true)
+          if (isAuthenticated) {
+            setIsCreateModalOpen(true);
           } else {
-            setIsCreateModalOpen(true)
+            setIsLoginModalOpen(true);
           }
         }}
         onLogin={() => setIsLoginModalOpen(true)}
       />
 
-      <main className="pt-20 min-h-screen pb-24">
-        {children}
-      </main>
+      <main className="min-h-screen pt-20 pb-24">{children}</main>
 
       <FloatingNavBar
         activeTab={activeTab}
@@ -109,5 +117,5 @@ export default function PageLayout({
 
       <BackToTop />
     </>
-  )
+  );
 }

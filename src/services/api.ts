@@ -1,4 +1,4 @@
-import { config } from '../config/env';
+import { config } from "../config/env";
 
 const API_BASE_URL = config.API_BASE_URL;
 
@@ -128,12 +128,12 @@ export interface LoginResponse {
 }
 
 class ApiService {
-  private baseURL = API_BASE_URL;
+  private readonly baseURL = API_BASE_URL;
   private token: string | null = null;
 
   constructor() {
     // 从localStorage获取token
-    this.token = localStorage.getItem('auth_token');
+    this.token = localStorage.getItem("auth_token");
   }
 
   private async request<T>(
@@ -141,56 +141,50 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
     }
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
 
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
-
-      // 处理401未授权错误
-      if (response.status === 401) {
-        this.clearToken();
-        throw new Error('登录已过期，请重新登录');
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // 检查API响应是否成功
-      if (data.code !== 200) {
-        throw new Error(data.msg || 'API请求失败');
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+    // 处理401未授权错误
+    if (response.status === 401) {
+      this.clearToken();
+      throw new Error("登录已过期，请重新登录");
     }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // 检查API响应是否成功
+    if (data.code !== 200) {
+      throw new Error(data.msg || "API请求失败");
+    }
+
+    return data;
   }
 
   // 设置认证token
   setToken(token: string) {
     this.token = token;
-    localStorage.setItem('auth_token', token);
+    localStorage.setItem("auth_token", token);
   }
 
   // 清除认证token
   clearToken() {
     this.token = null;
-    localStorage.removeItem('auth_token');
+    localStorage.removeItem("auth_token");
   }
 
   // 获取话题列表
@@ -205,7 +199,7 @@ class ApiService {
     exif?: boolean;
   }): Promise<ApiResponse<PaginatedResponse<ApiTopic>>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -215,8 +209,8 @@ class ApiService {
     }
 
     const queryString = searchParams.toString();
-    const endpoint = `/api/topic${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/api/topic${queryString ? `?${queryString}` : ""}`;
+
     return this.request<PaginatedResponse<ApiTopic>>(endpoint);
   }
 
@@ -228,37 +222,45 @@ class ApiService {
     tags?: string[];
     location?: string;
   }): Promise<ApiResponse<ApiTopic>> {
-    return this.request<ApiTopic>('/api/topic', {
-      method: 'POST',
+    return this.request<ApiTopic>("/api/topic", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   // 点赞话题
   async likeTopic(topicId: number): Promise<ApiResponse<any>> {
-    return this.request('/api/like', {
-      method: 'POST',
+    return this.request("/api/like", {
+      method: "POST",
       body: JSON.stringify({ topicId }),
     });
   }
 
   // 取消点赞
   async unlikeTopic(topicId: number): Promise<ApiResponse<any>> {
-    return this.request('/api/like', {
-      method: 'DELETE',
+    return this.request("/api/like", {
+      method: "DELETE",
       body: JSON.stringify({ topicId }),
     });
   }
 
   // 获取话题详情
-  async getTopicDetail(id: number, userId?: number, exif?: boolean): Promise<ApiResponse<ApiTopic>> {
+  async getTopicDetail(
+    id: number,
+    userId?: number,
+    exif?: boolean
+  ): Promise<ApiResponse<ApiTopic>> {
     const searchParams = new URLSearchParams();
-    if (userId) searchParams.append('userId', String(userId));
-    if (exif) searchParams.append('exif', String(exif));
-    
+    if (userId) {
+      searchParams.append("userId", String(userId));
+    }
+    if (exif) {
+      searchParams.append("exif", String(exif));
+    }
+
     const queryString = searchParams.toString();
-    const endpoint = `/api/topic/${id}${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/api/topic/${id}${queryString ? `?${queryString}` : ""}`;
+
     return this.request<ApiTopic>(endpoint);
   }
 
@@ -270,7 +272,7 @@ class ApiService {
     userId?: number;
   }): Promise<ApiResponse<PaginatedResponse<any>>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -280,8 +282,8 @@ class ApiService {
     }
 
     const queryString = searchParams.toString();
-    const endpoint = `/api/comment${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/api/comment${queryString ? `?${queryString}` : ""}`;
+
     return this.request<PaginatedResponse<any>>(endpoint);
   }
 
@@ -291,49 +293,54 @@ class ApiService {
     content: string;
     parentId?: number;
   }): Promise<ApiResponse<any>> {
-    return this.request('/api/comment', {
-      method: 'POST',
+    return this.request("/api/comment", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   // 登录
-  async login(account: string, password: string): Promise<ApiResponse<LoginResponse>> {
-    const response = await this.request<LoginResponse>('/api/auth/loginV2', {
-      method: 'POST',
+  async login(
+    account: string,
+    password: string
+  ): Promise<ApiResponse<LoginResponse>> {
+    const response = await this.request<LoginResponse>("/api/auth/loginV2", {
+      method: "POST",
       body: JSON.stringify({ account, password }),
     });
-    
+
     if (response.code === 200 && response.result?.token?.access_token) {
       this.setToken(response.result.token.access_token);
     }
-    
+
     return response;
   }
 
   // 注册
-  async register(account: string, password: string, name: string): Promise<ApiResponse<LoginResponse>> {
-    const response = await this.request<LoginResponse>('/api/auth/register', {
-      method: 'POST',
+  async register(
+    account: string,
+    password: string,
+    name: string
+  ): Promise<ApiResponse<LoginResponse>> {
+    const response = await this.request<LoginResponse>("/api/auth/register", {
+      method: "POST",
       body: JSON.stringify({ account, password, name }),
     });
-    
+
     if (response.code === 200 && response.result?.token?.access_token) {
       this.setToken(response.result.token.access_token);
     }
-    
+
     return response;
   }
 
   // 登出
   async logout(): Promise<void> {
     try {
-      await this.request('/api/auth/logout', {
-        method: 'POST',
+      await this.request("/api/auth/logout", {
+        method: "POST",
       });
-    } catch (error) {
-      // 即使登出接口失败，也要清除本地token
-      console.warn('登出接口调用失败，但会清除本地token');
+    } catch (_error) {
     } finally {
       this.clearToken();
     }
@@ -341,7 +348,7 @@ class ApiService {
 
   // 获取当前用户信息
   async getCurrentUser(): Promise<ApiResponse<ApiUser>> {
-    return this.request<ApiUser>('/api/auth/current');
+    return this.request<ApiUser>("/api/auth/current");
   }
 
   // 获取点赞统计
@@ -355,15 +362,18 @@ class ApiService {
   }
 
   // 获取用户访问过的城市
-  async getUserCities(userId: number, params?: {
-    page?: number;
-    limit?: number;
-    sortBy?: 'photoCount' | 'lastVisitAt' | 'firstVisitAt';
-    sortOrder?: 'asc' | 'desc';
-    country?: string;
-  }): Promise<ApiResponse<any>> {
+  async getUserCities(
+    userId: number,
+    params?: {
+      page?: number;
+      limit?: number;
+      sortBy?: "photoCount" | "lastVisitAt" | "firstVisitAt";
+      sortOrder?: "asc" | "desc";
+      country?: string;
+    }
+  ): Promise<ApiResponse<any>> {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -373,8 +383,8 @@ class ApiService {
     }
 
     const queryString = searchParams.toString();
-    const endpoint = `/api/user/${userId}/cities${queryString ? `?${queryString}` : ''}`;
-    
+    const endpoint = `/api/user/${userId}/cities${queryString ? `?${queryString}` : ""}`;
+
     return this.request(endpoint);
   }
 }

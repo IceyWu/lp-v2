@@ -1,7 +1,7 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AliveScope } from 'react-activation'
-import ErrorBoundary from '../components/ErrorBoundary'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { AliveScope } from "react-activation";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
       refetchOnMount: false, // 组件挂载时不自动重新获取（配合keep-alive）
     },
   },
-})
+});
 
 export const Route = createRootRoute({
   component: () => (
@@ -27,4 +27,4 @@ export const Route = createRootRoute({
       </ErrorBoundary>
     </QueryClientProvider>
   ),
-})
+});

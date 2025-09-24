@@ -8,8 +8,9 @@
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-      "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", "Cantarell", sans-serif;
   }
 }
 
@@ -82,12 +83,15 @@
 
   .border-gradient {
     border: 1px solid transparent;
-    background: linear-gradient(white, white) padding-box,
-                linear-gradient(135deg, #3b82f6, #8b5cf6) border-box;
+    background:
+      linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, #3b82f6, #8b5cf6) border-box;
   }
 
   .hover-lift {
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    transition:
+      transform 0.2s ease-out,
+      box-shadow 0.2s ease-out;
   }
 
   .hover-lift:hover {
@@ -136,7 +140,8 @@
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -154,7 +159,8 @@
 }
 
 @keyframes pulseGentle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }

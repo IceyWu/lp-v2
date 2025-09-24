@@ -1,28 +1,28 @@
-import { useState, useCallback } from 'react'
-import PageLayout from './PageLayout'
-import SimpleInfiniteScroll from './SimpleInfiniteScroll'
-import SimpleImageDetail from './SimpleImageDetail'
-import LoadingSpinner from './LoadingSpinner'
-import { useInfiniteTopics, useLikeTopic } from '../hooks/useTopics'
-import { useIsAuthenticated } from '../hooks/useAuth'
+import { useCallback, useState } from "react";
+import { useIsAuthenticated } from "../hooks/useAuth";
+import { useInfiniteTopics, useLikeTopic } from "../hooks/useTopics";
+import LoadingSpinner from "./LoadingSpinner";
+import PageLayout from "./PageLayout";
+import SimpleImageDetail from "./SimpleImageDetail";
+import SimpleInfiniteScroll from "./SimpleInfiniteScroll";
 
 interface TopicsListPageProps {
-  activeTab: 'home' | 'trending' | 'likes' | 'saved'
-  sortBy?: string
-  title?: string
-  icon?: React.ReactNode
-  emptyMessage?: string
+  activeTab: "home" | "trending" | "likes" | "saved";
+  sortBy?: string;
+  title?: string;
+  icon?: React.ReactNode;
+  emptyMessage?: string;
 }
 
-export default function TopicsListPage({ 
-  activeTab, 
-  sortBy = 'createdAt,desc',
+export default function TopicsListPage({
+  activeTab,
+  sortBy = "createdAt,desc",
   title,
   icon,
-  emptyMessage = '暂无内容'
+  emptyMessage = "暂无内容",
 }: TopicsListPageProps) {
-  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null)
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+  const [_isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const {
     data: topicsData,
@@ -31,75 +31,82 @@ export default function TopicsListPage({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch
+    refetch,
   } = useInfiniteTopics({
     size: 20,
-    sort: sortBy
-  })
+    sort: sortBy,
+  });
 
-  const { isAuthenticated } = useIsAuthenticated()
-  const likeMutation = useLikeTopic()
+  const { isAuthenticated } = useIsAuthenticated();
+  const likeMutation = useLikeTopic();
 
-  const posts = topicsData?.pages.flatMap((page: any) => page.items) || []
+  const posts = topicsData?.pages.flatMap((page: any) => page.items) || [];
 
-  const handleLike = useCallback((postId: string) => {
-    if (!isAuthenticated) {
-      setIsLoginModalOpen(true)
-      return
-    }
+  const handleLike = useCallback(
+    (postId: string) => {
+      if (!isAuthenticated) {
+        setIsLoginModalOpen(true);
+        return;
+      }
 
-    const post = posts.find(p => p.id === postId)
-    if (!post) return
+      const post = posts.find((p) => p.id === postId);
+      if (!post) {
+        return;
+      }
 
-    likeMutation.mutate({
-      topicId: Number(postId),
-      isLiked: post.isLiked
-    })
-  }, [posts, isAuthenticated, likeMutation])
+      likeMutation.mutate({
+        topicId: Number(postId),
+        isLiked: post.isLiked,
+      });
+    },
+    [posts, isAuthenticated, likeMutation]
+  );
 
-  const handleSave = useCallback((postId: string) => {
-    if (!isAuthenticated) {
-      setIsLoginModalOpen(true)
-      return
-    }
-    console.log('收藏功能待实现:', postId)
-  }, [isAuthenticated])
+  const handleSave = useCallback(
+    (_postId: string) => {
+      if (!isAuthenticated) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+    },
+    [isAuthenticated]
+  );
 
   const handlePostClick = useCallback((postId: string) => {
-    setSelectedTopicId(Number(postId))
-  }, [])
+    setSelectedTopicId(Number(postId));
+  }, []);
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
+      fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading && posts.length === 0) {
     return (
       <PageLayout activeTab={activeTab}>
-        <div className="max-w-6xl mx-auto px-8 py-8">
+        <div className="mx-auto max-w-6xl px-8 py-8">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <LoadingSpinner size="lg" className="mb-4" />
+              <LoadingSpinner className="mb-4" size="lg" />
               <p className="text-gray-600">加载中...</p>
             </div>
           </div>
         </div>
       </PageLayout>
-    )
+    );
   }
 
   if (error) {
     return (
       <PageLayout activeTab={activeTab}>
-        <div className="max-w-6xl mx-auto px-8 py-8">
+        <div className="mx-auto max-w-6xl px-8 py-8">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
-              <p className="text-red-600 mb-4">加载失败</p>
+              <p className="mb-4 text-red-600">加载失败</p>
               <button
+                className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                 onClick={() => refetch()}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >
                 重试
               </button>
@@ -107,19 +114,19 @@ export default function TopicsListPage({
           </div>
         </div>
       </PageLayout>
-    )
+    );
   }
 
   return (
     <PageLayout activeTab={activeTab}>
-      <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="mx-auto max-w-6xl px-8 py-8">
         {title && (
-          <div className="flex items-center gap-3 mb-8">
+          <div className="mb-8 flex items-center gap-3">
             {icon}
-            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
+            <h1 className="font-bold text-2xl text-gray-900">{title}</h1>
           </div>
         )}
-        
+
         {posts.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -129,13 +136,13 @@ export default function TopicsListPage({
         ) : (
           <div className="space-y-8">
             <SimpleInfiniteScroll
-              posts={posts}
-              hasMore={hasNextPage || false}
+              hasMore={hasNextPage}
               isLoading={isFetchingNextPage}
-              onLoadMore={handleLoadMore}
               onLike={handleLike}
-              onSave={handleSave}
+              onLoadMore={handleLoadMore}
               onPostClick={handlePostClick}
+              onSave={handleSave}
+              posts={posts}
             />
           </div>
         )}
@@ -143,13 +150,13 @@ export default function TopicsListPage({
 
       {selectedTopicId && (
         <SimpleImageDetail
-          topicId={selectedTopicId}
           isOpen={!!selectedTopicId}
           onClose={() => setSelectedTopicId(null)}
           onLike={handleLike}
           onSave={handleSave}
+          topicId={selectedTopicId}
         />
       )}
     </PageLayout>
-  )
+  );
 }

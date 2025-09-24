@@ -1,129 +1,181 @@
-import { useState } from 'react';
-import { X, Image, MapPin, Hash } from 'lucide-react';
-import { Post } from '../types';
+import { Hash, Image, MapPin, X } from "lucide-react";
+import { useState } from "react";
+import type { Post } from "../types";
 
-interface CreatePostModalProps {
+type CreatePostModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (postData: Omit<Post, 'id' | 'author' | 'likes' | 'comments' | 'saves' | 'isLiked' | 'isSaved' | 'createdAt'>) => void;
-}
+  onSubmit: (
+    postData: Omit<
+      Post,
+      | "id"
+      | "author"
+      | "likes"
+      | "comments"
+      | "saves"
+      | "isLiked"
+      | "isSaved"
+      | "createdAt"
+    >
+  ) => void;
+};
 
-export default function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePostModalProps) {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [tags, setTags] = useState('');
-  const [location, setLocation] = useState('');
+export default function CreatePostModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: CreatePostModalProps) {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState("");
+  const [location, setLocation] = useState("");
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const postData = {
       title,
       content,
-      tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      tags: tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
       location: location || undefined,
       images: [], // 简化版本暂不处理图片上传
     };
-    
+
     onSubmit(postData);
-    
+
     // 重置表单
-    setTitle('');
-    setContent('');
-    setTags('');
-    setLocation('');
+    setTitle("");
+    setContent("");
+    setTags("");
+    setLocation("");
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg max-h-[85vh] overflow-hidden shadow-2xl transform transition-all">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="max-h-[85vh] w-full max-w-lg transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all">
         {/* 头部 */}
         <div className="relative p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-black">创建新动态</h2>
-              <p className="text-sm text-gray-500 mt-1">分享你的精彩瞬间</p>
+              <h2 className="font-semibold text-black text-xl">创建新动态</h2>
+              <p className="mt-1 text-gray-500 text-sm">分享你的精彩瞬间</p>
             </div>
             <button
+              className="rounded-full p-2 transition-all duration-200 hover:bg-gray-100"
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-all duration-200"
+              type="button"
             >
-              <X size={20} className="text-gray-400" />
+              <X className="text-gray-400" size={20} />
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6 overflow-y-auto max-h-[calc(85vh-100px)]">
+        <form
+          className="max-h-[calc(85vh-100px)] space-y-6 overflow-y-auto px-6 pb-6"
+          onSubmit={handleSubmit}
+        >
           {/* 标题输入 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">标题</label>
+            <label
+              className="font-medium text-gray-700 text-sm"
+              htmlFor="post-title"
+            >
+              标题
+            </label>
             <input
-              type="text"
-              value={title}
+              className="w-full rounded-xl border-0 bg-gray-50 px-4 py-3 text-base transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+              id="post-title"
               onChange={(e) => setTitle(e.target.value)}
               placeholder="给你的动态起个吸引人的标题..."
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-black/10 transition-all text-base placeholder:text-gray-400"
               required
+              type="text"
+              value={title}
             />
           </div>
 
           {/* 内容输入 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">内容</label>
+            <label
+              className="font-medium text-gray-700 text-sm"
+              htmlFor="post-content"
+            >
+              内容
+            </label>
             <textarea
-              value={content}
+              className="w-full resize-none rounded-xl border-0 bg-gray-50 px-4 py-3 text-base transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+              id="post-content"
               onChange={(e) => setContent(e.target.value)}
               placeholder="分享你的想法、感受或故事..."
-              rows={5}
-              className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl resize-none focus:bg-white focus:ring-2 focus:ring-black/10 transition-all text-base placeholder:text-gray-400"
               required
+              rows={5}
+              value={content}
             />
           </div>
 
           {/* 图片上传区域 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">图片（可选）</label>
-            <div className="relative group">
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-gray-300 hover:bg-gray-50/50 transition-all cursor-pointer">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-gray-200 transition-colors">
-                  <Image size={16} className="text-gray-400" />
+            <label
+              className="font-medium text-gray-700 text-sm"
+              htmlFor="post-images"
+            >
+              图片（可选）
+            </label>
+            <div className="group relative">
+              <div className="cursor-pointer rounded-xl border-2 border-gray-200 border-dashed p-6 text-center transition-all hover:border-gray-300 hover:bg-gray-50/50">
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 transition-colors group-hover:bg-gray-200">
+                  <Image className="text-gray-400" size={16} />
                 </div>
-                <p className="text-sm text-gray-600 mb-1">添加图片</p>
-                <p className="text-xs text-gray-400">也可以创建纯文字动态</p>
+                <p className="mb-1 text-gray-600 text-sm">添加图片</p>
+                <p className="text-gray-400 text-xs">也可以创建纯文字动态</p>
               </div>
             </div>
+            {/* 隐藏的文件输入以关联 label，实际上传功能后续再实现 */}
+            <input className="hidden" id="post-images" type="file" />
           </div>
 
           {/* 标签和位置 */}
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <label
+                className="flex items-center gap-2 font-medium text-gray-700 text-sm"
+                htmlFor="post-tags"
+              >
                 <Hash size={14} />
                 标签
               </label>
               <input
-                type="text"
-                value={tags}
+                className="w-full rounded-xl border-0 bg-gray-50 px-4 py-3 text-sm transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+                id="post-tags"
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="添加标签，用逗号分隔（如：旅行, 美食, 生活）"
-                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-black/10 transition-all text-sm placeholder:text-gray-400"
+                type="text"
+                value={tags}
               />
             </div>
-            
+
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <label
+                className="flex items-center gap-2 font-medium text-gray-700 text-sm"
+                htmlFor="post-location"
+              >
                 <MapPin size={14} />
                 位置
               </label>
               <input
-                type="text"
-                value={location}
+                className="w-full rounded-xl border-0 bg-gray-50 px-4 py-3 text-sm transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+                id="post-location"
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="添加位置信息（可选）"
-                className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-black/10 transition-all text-sm placeholder:text-gray-400"
+                type="text"
+                value={location}
               />
             </div>
           </div>
@@ -131,8 +183,8 @@ export default function CreatePostModal({ isOpen, onClose, onSubmit }: CreatePos
           {/* 提交按钮 */}
           <div className="pt-2">
             <button
+              className="w-full transform rounded-xl bg-black py-4 font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-gray-800 active:scale-[0.98]"
               type="submit"
-              className="w-full bg-black text-white py-4 rounded-xl font-medium hover:bg-gray-800 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
             >
               发布动态
             </button>

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState, useRef } from 'react';
+import { Children, type ReactNode } from "react";
 
 interface MasonryLayoutProps {
   children: ReactNode[];
@@ -7,28 +7,30 @@ interface MasonryLayoutProps {
   className?: string;
 }
 
-export default function MasonryLayout({ 
-  children, 
-  columns = 3, 
-  gap = 16, 
-  className = '' 
+export default function MasonryLayout({
+  children,
+  columns = 3,
+  gap = 16,
+  className = "",
 }: MasonryLayoutProps) {
+  const items = Children.toArray(children);
+
   return (
-    <div 
+    <div
       className={`w-full ${className}`}
-      style={{ 
+      style={{
         columnCount: columns,
         columnGap: `${gap}px`,
-        columnFill: 'balance'
+        columnFill: "balance",
       }}
     >
-      {children.map((child, index) => (
-        <div 
-          key={index} 
-          className="break-inside-avoid mb-4 w-full"
-          style={{ 
-            display: 'inline-block',
-            width: '100%'
+      {items.map((child) => (
+        <div
+          className="mb-4 w-full break-inside-avoid"
+          key={(child as any).key ?? undefined}
+          style={{
+            display: "inline-block",
+            width: "100%",
           }}
         >
           {child}
