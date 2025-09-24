@@ -9,7 +9,8 @@
     "lint": "ultracite check",
     "format": "ultracite fix",
     "preview": "vite preview",
-    "ui:add": "pnpm dlx shadcn@latest add"
+    "ui:add": "pnpm dlx shadcn@latest add",
+    "clean:modules": "npx rimraf node_modules"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-language": "^1.0.1",
@@ -24,12 +25,12 @@
     "@supabase/supabase-js": "latest",
     "@tailwindcss/postcss": "^4.1.13",
     "@tailwindcss/vite": "latest",
-    "@tanstack/react-query": "^5.87.4",
-    "@tanstack/react-router": "^1.131.41",
+    "@tanstack/react-query": "^5.90.2",
+    "@tanstack/react-router": "^1.132.2",
     "blurhash": "^2.0.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.23.12",
+    "framer-motion": "^12.23.19",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.15.0",
     "react": "^19.1.1",
@@ -46,10 +47,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/mapbox-gl": "^3.4.1",
-    "@types/node": "^24.4.0",
+    "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.2",
+    "@vitejs/plugin-react": "^5.0.3",
     "autoprefixer": "^10.4.21",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
@@ -58,9 +59,8 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.43.0",
-    "ultracite": "^5.4.3",
-    "vite": "^7.1.5"
+    "ultracite": "^5.4.5",
+    "vite": "^7.1.7"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
