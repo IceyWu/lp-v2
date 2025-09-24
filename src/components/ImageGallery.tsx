@@ -88,40 +88,32 @@ export default function ImageGallery({
               ? layoutConfig.imageClass(index)
               : layoutConfig.imageClass;
 
+          // 注意：避免 <button> 内再嵌套 <button> 导致的 hydration 报错。
+          // 结构：外层 div 容器；内部一个铺满的 button 处理图片点击；当为最后一张且有剩余时，再渲染一个覆盖层 button（兄弟节点）。
           return (
-            <button
-              className="relative cursor-pointer overflow-hidden rounded-lg transition-opacity hover:opacity-90"
-              key={image.id}
-              onClick={(e) => {
-                e.stopPropagation(); // 阻止事件冒泡
-                onImageClick?.(index);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
+            <div className="relative overflow-hidden rounded-lg" key={image.id}>
+              {/* 基础图片点击区域 */}
+              <button
+                className="block h-full w-full cursor-pointer transition-opacity hover:opacity-90"
+                onClick={(e) => {
+                  e.stopPropagation();
                   onImageClick?.(index);
-                }
-              }}
-              type="button"
-            >
-              <OptimizedImage
-                className={`${imageClass} object-cover`}
-                image={image}
-              />
+                }}
+                type="button"
+              >
+                <OptimizedImage
+                  className={`${imageClass} object-cover`}
+                  image={image}
+                />
+              </button>
 
-              {/* 显示剩余图片数量 */}
+              {/* 显示剩余图片数量（覆盖层按钮，与上面按钮为兄弟关系，避免嵌套） */}
               {isLastInGrid && !showAll && (
                 <button
                   className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/60 transition-colors hover:bg-black/70"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowAll(true);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setShowAll(true);
-                    }
                   }}
                   type="button"
                 >
@@ -130,7 +122,7 @@ export default function ImageGallery({
                   </Badge>
                 </button>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
