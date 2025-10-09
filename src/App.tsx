@@ -1,5 +1,6 @@
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { routeTree } from "./routeTree.gen";
 
 const router = createRouter({ routeTree });
@@ -14,6 +15,7 @@ export default function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="life-ui-theme">
       <RouterProvider router={router} />
+      <Toaster />
     </ThemeProvider>
   );
 }

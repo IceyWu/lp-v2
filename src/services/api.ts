@@ -387,6 +387,71 @@ class ApiService {
 
     return this.request(endpoint);
   }
+
+  // 更新用户信息
+  async updateUserProfile(data: {
+    name?: string;
+    signature?: string;
+  }): Promise<ApiResponse<ApiUser>> {
+    return this.request<ApiUser>("/api/user/profile", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // 上传头像
+  async uploadAvatar(file: File): Promise<
+    ApiResponse<{
+      id: number;
+      name: string;
+      url: string;
+      width: number;
+      height: number;
+      blurhash: string;
+      md5: string;
+    }>
+  > {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const url = `${this.baseURL}/api/upload/avatar`;
+    const headers: Record<string, string> = {};
+
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      this.clearToken();
+      throw new Error("登录已过期，请重新登录");
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.code !== 200) {
+      throw new Error(data.msg || "头像上传失败");
+    }
+
+    return data;
+  }
+
+  // 更新用户头像
+  async updateUserAvatar(avatarFileMd5: string): Promise<ApiResponse<ApiUser>> {
+    return this.request<ApiUser>("/api/user/avatar", {
+      method: "PUT",
+      body: JSON.stringify({ avatarFileMd5 }),
+    });
+  }
 }
 
 export const apiService = new ApiService();

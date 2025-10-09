@@ -2,11 +2,13 @@ import { Bookmark, Camera, Grid, Heart, Map, Settings } from "lucide-react";
 import { useState } from "react";
 import { useIsAuthenticated } from "../hooks/useAuth";
 import LoadingSpinner from "./LoadingSpinner";
+import ProfileEditDialog from "./ProfileEditDialog";
 import TrackPage from "./TrackPage";
 
 export default function ProfilePage() {
   const { user, isLoading } = useIsAuthenticated();
   const [activeTab, setActiveTab] = useState("posts");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -70,7 +72,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <button className="rounded-full p-2 transition-colors hover:bg-gray-100">
+          <button
+            aria-label="编辑个人资料"
+            className="rounded-full p-2 transition-colors hover:bg-gray-100"
+            onClick={() => setIsEditDialogOpen(true)}
+          >
             <Settings className="text-gray-500" size={18} />
           </button>
         </div>
@@ -150,6 +156,15 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 编辑对话框 */}
+      {user && (
+        <ProfileEditDialog
+          onOpenChange={setIsEditDialogOpen}
+          open={isEditDialogOpen}
+          user={user}
+        />
       )}
     </div>
   );
