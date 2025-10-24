@@ -174,3 +174,72 @@ export function removeFileByIndex(
 export function extractFileIds(fileList: FileItem[]): string[] {
   return fileList.map((file) => file.id);
 }
+
+/**
+ * 本地文件名解析
+ */
+export function parseLocalFileName(fileName: string): FileNameInfo {
+  return parseFileName(fileName);
+}
+
+/**
+ * 查找匹配的本地图片文件
+ * @param videoFile 视频文件
+ * @param fileList 本地文件列表
+ * @returns 匹配的图片文件索引，未找到返回 -1
+ */
+export function findMatchingLocalImageFile(
+  videoFile: File,
+  fileList: File[]
+): number {
+  const videoNameInfo = parseFileName(videoFile.name);
+
+  return fileList.findIndex((file) => {
+    const fileNameInfo = parseFileName(file.name);
+    // 文件名相同但扩展名不同，且不是视频文件
+    return fileNameInfo.name === videoNameInfo.name && !fileNameInfo.isVideo;
+  });
+}
+
+/**
+ * 本地文件 Live Photo 配对信息
+ */
+export interface LocalLivePhotoInfo {
+  imageFile: File;
+  videoFile: File;
+  imageIndex: number;
+  videoIndex: number;
+}
+
+/**
+ * 检测本地文件中的 Live Photo 配对
+ * @param files 本地文件列表
+ * @returns Live Photo 配对信息数组
+ */
+export function detectLocalLivePhotos(files: File[]): LocalLivePhotoInfo[] {
+  const livePhotos: LocalLivePhotoInfo[] = [];
+  const processedIndices = new Set<number>();
+
+  files.forEach((file, videoIndex) => {
+    const fileNameInfo = parseFileName(file.name);
+
+    // 如果是 MOV 视频文件
+    if (fileNameInfo.extension.toUpperCase() === "MOV") {
+      // 查找对应的图片文件
+      const imageIndex = findMatchingLocalImageFile(file, files);
+
+      if (imageIndex !== -1 && !processedIndices.has(imageIndex)) {
+        livePhotos.push({
+          imageFile: files[imageIndex],
+          videoFile: file,
+          imageIndex,
+          videoIndex,
+        });
+        processedIndices.add(imageIndex);
+        processedIndices.add(videoIndex);
+      }
+    }
+  });
+
+  return livePhotos;
+}

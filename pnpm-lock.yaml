@@ -83,6 +83,9 @@ importers:
       framer-motion:
         specifier: ^12.23.19
         version: 12.23.19(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      live-photo:
+        specifier: ^0.0.46
+        version: 0.0.46
       lucide-react:
         specifier: ^0.544.0
         version: 0.544.0(react@19.1.1)
@@ -2124,6 +2127,9 @@ packages:
   listr2@9.0.4:
     resolution: {integrity: sha512-1wd/kpAdKRLwv7/3OKC8zZ5U8e/fajCfWMxacUvB79S5nLrYGPtUI/8chMQhn3LQjsRVErTb9i1ECAwW0ZIHnQ==}
     engines: {node: '>=20.0.0'}
+
+  live-photo@0.0.46:
+    resolution: {integrity: sha512-jhczxF4RHZ0dR5bYt0Z1yHbUYfFb8OuJ4vW5q9HQ5BQP2xyFoXnRId/6uRSBuO0W+WxUiMjbP0FlLc7b479AJA==}
 
   lodash.mapvalues@4.6.0:
     resolution: {integrity: sha512-JPFqXFeZQ7BfS00H58kClY7SPVeHertPE0lNuCyZ26/XlN8TvakYD7b9bGyNmXbT/D3BbtPAAmq90gPWqLkxlQ==}
@@ -4806,6 +4812,10 @@ snapshots:
       log-update: 6.1.0
       rfdc: 1.4.1
       wrap-ansi: 9.0.2
+
+  live-photo@0.0.46:
+    dependencies:
+      tslib: 2.8.1
 
   lodash.mapvalues@4.6.0: {}
 

@@ -15,6 +15,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { LivePhotoViewer } from "live-photo";
 import {
   GripVertical,
   Hash,
@@ -31,6 +32,7 @@ import { sanitizeHtml } from "../lib/sanitize";
 import { serializeToHtml } from "../lib/serializeHtml";
 import type { Post } from "../types";
 import type { FileItem } from "../types/upload";
+import { detectLocalLivePhotos } from "../utils/upload/fileProcessor";
 import { PlateEditor } from "./PlateEditor";
 
 type CreatePostModalProps = {
@@ -59,18 +61,15 @@ const initialValue: Value = [
   },
 ];
 
-// 媒体文件项组件（已上传）
-interface UploadedMediaItemProps {
-  file: FileItem;
+// 媒体文件项组件（本地预览）
+interface MediaItemProps {
+  file: File;
   id: string;
   onRemove: () => void;
+  videoFile?: File; // Live Photo 的视频文件
 }
 
-function SortableUploadedMediaItem({
-  file,
-  id,
-  onRemove,
-}: UploadedMediaItemProps) {
+function SortableMediaItem({ file, id, onRemove, videoFile }: MediaItemProps) {
   const {
     attributes,
     listeners,
@@ -86,7 +85,41 @@ function SortableUploadedMediaItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const [preview, setPreview] = useState<string>("");
+  const [videoPreview, setVideoPreview] = useState<string>("");
+  const livePhotoRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  React.useEffect(() => {
+    if (videoFile) {
+      const url = URL.createObjectURL(videoFile);
+      setVideoPreview(url);
+      return () => URL.revokeObjectURL(url);
+    }
+  }, [videoFile]);
+
+  // 初始化 Live Photo
+  React.useEffect(() => {
+    if (videoFile && preview && videoPreview && livePhotoRef.current) {
+      try {
+        new LivePhotoViewer({
+          container: livePhotoRef.current,
+          photoSrc: preview,
+          videoSrc: videoPreview,
+        });
+      } catch (error) {
+        console.error("Live Photo 初始化失败:", error);
+      }
+    }
+  }, [preview, videoPreview, videoFile]);
+
   const isVideo = file.type.startsWith("video/");
+  const isLivePhoto = !!videoFile;
 
   return (
     <div
@@ -94,14 +127,13 @@ function SortableUploadedMediaItem({
       ref={setNodeRef}
       style={style}
     >
-      {isVideo ? (
-        <video className="h-full w-full object-cover" src={file.url} />
+      {isLivePhoto ? (
+        // Live Photo 渲染
+        <div className="h-full w-full" ref={livePhotoRef} />
+      ) : isVideo ? (
+        <video className="h-full w-full object-cover" src={preview} />
       ) : (
-        <img
-          alt={file.name}
-          className="h-full w-full object-cover"
-          src={file.url}
-        />
+        <img alt="" className="h-full w-full object-cover" src={preview} />
       )}
 
       {/* 拖拽手柄 */}
@@ -123,7 +155,7 @@ function SortableUploadedMediaItem({
       </button>
 
       {/* 视频标识 */}
-      {isVideo && (
+      {isVideo && !isLivePhoto && (
         <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1">
           <Video className="text-white" size={12} />
         </div>
@@ -141,7 +173,7 @@ export default function CreatePostModal({
   const [content, setContent] = useState<Value>(initialValue);
   const [tags, setTags] = useState("");
   const [location, setLocation] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // 选中的文件（未上传）
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -156,11 +188,43 @@ export default function CreatePostModal({
     })
   );
 
-  // 为每个文件生成唯一 ID
-  const mediaItems = useMemo(
-    () => uploadedFiles.map((file) => ({ file, id: file.id })),
-    [uploadedFiles]
-  );
+  // 检测 Live Photo 配对
+  const livePhotoPairs = useMemo(() => {
+    return detectLocalLivePhotos(selectedFiles);
+  }, [selectedFiles]);
+
+  // 创建 Live Photo 映射（图片索引 -> 视频文件）
+  const livePhotoMap = useMemo(() => {
+    const map = new Map<number, File>();
+    livePhotoPairs.forEach((pair) => {
+      map.set(pair.imageIndex, pair.videoFile);
+    });
+    return map;
+  }, [livePhotoPairs]);
+
+  // 过滤掉已配对的 MOV 文件，只显示图片和未配对的视频
+  const displayFiles = useMemo(() => {
+    const pairedVideoIndices = new Set(
+      livePhotoPairs.map((pair) => pair.videoIndex)
+    );
+    return selectedFiles.filter((_, index) => !pairedVideoIndices.has(index));
+  }, [selectedFiles, livePhotoPairs]);
+
+  // 为每个文件生成唯一 ID（用于预览）
+  const mediaItems = useMemo(() => {
+    return displayFiles.map((file, displayIndex) => {
+      // 找到原始索引
+      const originalIndex = selectedFiles.indexOf(file);
+      const videoFile = livePhotoMap.get(originalIndex);
+
+      return {
+        file,
+        videoFile,
+        id: `${file.name}-${displayIndex}`,
+        originalIndex,
+      };
+    });
+  }, [displayFiles, selectedFiles, livePhotoMap]);
 
   if (!isOpen) {
     return null;
@@ -173,33 +237,22 @@ export default function CreatePostModal({
     if (over && active.id !== over.id) {
       const oldIndex = mediaItems.findIndex((item) => item.id === active.id);
       const newIndex = mediaItems.findIndex((item) => item.id === over.id);
-      const newFiles = arrayMove(uploadedFiles, oldIndex, newIndex);
-      setUploadedFiles(newFiles);
+      const newFiles = arrayMove(selectedFiles, oldIndex, newIndex);
+      setSelectedFiles(newFiles);
     }
   };
 
-  // 处理文件选择并上传
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理文件选择（仅预览，不上传）
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    try {
-      // 上传文件
-      const results = await uploadMultipleFiles(files, {
-        compressPNG: false,
-        compressJPEG: false,
-      });
+    // 添加到选中文件列表
+    setSelectedFiles((prev) => [...prev, ...files]);
 
-      // 添加到已上传列表
-      setUploadedFiles((prev) => [...prev, ...results]);
-
-      // 清空文件输入
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error("上传失败:", error);
-      alert("文件上传失败，请重试");
+    // 清空文件输入
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -214,7 +267,7 @@ export default function CreatePostModal({
     setIsDragging(false);
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
 
@@ -224,22 +277,30 @@ export default function CreatePostModal({
 
     if (files.length === 0) return;
 
-    try {
-      const results = await uploadMultipleFiles(files, {
-        compressPNG: false,
-        compressJPEG: false,
-      });
-
-      setUploadedFiles((prev) => [...prev, ...results]);
-    } catch (error) {
-      console.error("上传失败:", error);
-      alert("文件上传失败，请重试");
-    }
+    // 添加到选中文件列表
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
-  // 删除文件
-  const handleRemoveFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  // 删除文件（如果是 Live Photo，同时删除图片和视频）
+  const handleRemoveFile = (displayIndex: number) => {
+    const item = mediaItems[displayIndex];
+    if (!item) return;
+
+    const originalIndex = item.originalIndex;
+
+    setSelectedFiles((prev) => {
+      // 检查是否是 Live Photo
+      const videoFile = livePhotoMap.get(originalIndex);
+      if (videoFile) {
+        // 找到视频文件的索引
+        const videoIndex = prev.indexOf(videoFile);
+        // 同时删除图片和视频
+        return prev.filter((_, i) => i !== originalIndex && i !== videoIndex);
+      }
+
+      // 普通文件，直接删除
+      return prev.filter((_, i) => i !== originalIndex);
+    });
   };
 
   // 检查内容是否为空
@@ -257,7 +318,7 @@ export default function CreatePostModal({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 验证内容不为空
@@ -266,48 +327,69 @@ export default function CreatePostModal({
       return;
     }
 
-    // 将 Plate Value 转换为 HTML 字符串
-    const htmlContent = serializeToHtml(content);
+    try {
+      // 1. 先上传文件（如果有）
+      let uploadedFiles: FileItem[] = [];
+      if (selectedFiles.length > 0) {
+        const rawUploadedFiles = await uploadMultipleFiles(selectedFiles, {
+          compressPNG: true,
+          compressJPEG: true,
+        });
 
-    // 清理 HTML 以防止 XSS 攻击
-    const sanitizedContent = sanitizeHtml(htmlContent);
+        // 2. 处理 Live Photo 文件关联
+        const { processLivePhotoFiles } = await import(
+          "../utils/upload/fileProcessor"
+        );
+        uploadedFiles = await processLivePhotoFiles(rawUploadedFiles);
+      }
 
-    const postData = {
-      title,
-      content: sanitizedContent,
-      tags: tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
-      location: location || undefined,
-      images: uploadedFiles.map((file) => ({
-        id: Number(file.id) || 0,
-        url: file.url,
-        width: file.width || 0,
-        height: file.height || 0,
-        blurhash: file.blurhash || "",
-        type: file.type,
-        name: file.name,
-      })),
-    };
+      // 3. 将 Plate Value 转换为 HTML 字符串
+      const htmlContent = serializeToHtml(content);
 
-    // 打印参数查看
-    console.log("提交的数据：", postData);
-    console.log("上传的文件：", uploadedFiles);
+      // 4. 清理 HTML 以防止 XSS 攻击
+      const sanitizedContent = sanitizeHtml(htmlContent);
 
-    // 实际提交
-    onSubmit(postData);
+      // 5. 构建提交数据
+      const postData = {
+        title,
+        content: sanitizedContent,
+        tags: tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        location: location || undefined,
+        images: uploadedFiles.map((file) => ({
+          id: Number(file.id) || 0,
+          url: file.url,
+          width: file.width || 0,
+          height: file.height || 0,
+          blurhash: file.blurhash || "",
+          type: file.type,
+          name: file.name,
+        })),
+      };
 
-    // 重置表单
-    setTitle("");
-    setContent(initialValue);
-    setTags("");
-    setLocation("");
-    setUploadedFiles([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      // 打印参数查看
+      console.log("提交的数据：", postData);
+      console.log("上传的文件：", uploadedFiles);
+
+      // 6. 实际提交
+      onSubmit(postData);
+
+      // 7. 重置表单
+      setTitle("");
+      setContent(initialValue);
+      setTags("");
+      setLocation("");
+      setSelectedFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      onClose();
+    } catch (error) {
+      console.error("提交失败:", error);
+      alert("提交失败，请重试");
     }
-    onClose();
   };
 
   return (
@@ -440,7 +522,7 @@ export default function CreatePostModal({
               )}
 
               {/* 媒体预览网格 */}
-              {uploadedFiles.length > 0 && (
+              {selectedFiles.length > 0 && (
                 <div className="mt-3 max-h-[300px] overflow-y-auto rounded-lg border border-gray-200 p-2">
                   <DndContext
                     collisionDetection={closestCenter}
@@ -453,11 +535,12 @@ export default function CreatePostModal({
                     >
                       <div className="grid grid-cols-3 gap-2">
                         {mediaItems.map((item, index) => (
-                          <SortableUploadedMediaItem
+                          <SortableMediaItem
                             file={item.file}
                             id={item.id}
                             key={item.id}
                             onRemove={() => handleRemoveFile(index)}
+                            videoFile={item.videoFile}
                           />
                         ))}
                       </div>

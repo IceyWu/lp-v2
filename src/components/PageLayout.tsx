@@ -21,7 +21,7 @@ export default function PageLayout({
   requireAuth = false,
   authFallback,
 }: PageLayoutProps) {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(true);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const { isAuthenticated } = useIsAuthenticated();
