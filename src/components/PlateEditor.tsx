@@ -29,9 +29,9 @@ export function PlateEditor({
   });
 
   return (
-    <div className="w-full">
-      <Plate editor={editor} onChange={({ value }) => onChange(value)}>
-        <FixedToolbar className="flex justify-start gap-1 rounded-t-xl border-0 bg-gray-50 px-3 py-2">
+    <Plate editor={editor} onChange={({ value }) => onChange(value)}>
+      <div className="w-full overflow-hidden rounded-xl border-0 bg-gray-50 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-black/10">
+        <FixedToolbar className="flex justify-start gap-1 border-0 border-b border-gray-200 bg-transparent px-3 py-2">
           <MarkToolbarButton nodeType="bold" tooltip="粗体 (⌘+B)">
             <Bold size={16} />
           </MarkToolbarButton>
@@ -42,14 +42,14 @@ export function PlateEditor({
             <Underline size={16} />
           </MarkToolbarButton>
         </FixedToolbar>
-        <EditorContainer className="min-h-[120px] w-full rounded-b-xl border-0 bg-gray-50 px-4 py-3 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-black/10">
+        <EditorContainer className="w-full border-0 bg-transparent">
           <Editor
-            className="min-h-[120px] w-full text-base"
+            className="min-h-[120px] w-full px-4 py-3 text-base"
             placeholder={placeholder}
             variant="none"
           />
         </EditorContainer>
-      </Plate>
-    </div>
+      </div>
+    </Plate>
   );
 }

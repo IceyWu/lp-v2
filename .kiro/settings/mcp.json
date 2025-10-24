@@ -12,18 +12,27 @@
       "env": {
         "APIFOX_ACCESS_TOKEN": "APS-MsDe3jUUcIkd8MD99TRfubSixjaOHo58"
       },
-      "disabled": false,
+      "disabled": true,
       "autoApprove": [
         "read_project_oas_ref_resources_wabi87",
         "read_project_oas_yu78md",
         "read_project_oas_ref_resources_yu78md"
       ]
     },
-    "context7": {
+    "Context7": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "YOUR_API_KEY"],
+      "env": {},
       "disabled": false,
-      "autoApprove": ["get-library-docs"]
+      "autoApprove": []
+    },
+    "plate": {
+      "command": "npx",
+      "args": ["-y", "shadcn@canary", "registry:mcp"],
+      "env": {
+        "REGISTRY_URL": "https://platejs.org/r/registry.json"
+      },
+      "disabled": false
     }
   }
 }
