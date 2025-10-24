@@ -13,6 +13,7 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as UploadDemoImport } from './routes/upload-demo'
 import { Route as TrendingImport } from './routes/trending'
 import { Route as SearchImport } from './routes/search'
 import { Route as SavedImport } from './routes/saved'

@@ -15,12 +15,22 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Hash, Image, MapPin, Video, X } from "lucide-react";
+import {
+  GripVertical,
+  Hash,
+  Image,
+  Loader2,
+  MapPin,
+  Video,
+  X,
+} from "lucide-react";
 import type { Value } from "platejs";
 import React, { useMemo, useRef, useState } from "react";
+import { useFileUpload } from "../hooks/useFileUpload";
 import { sanitizeHtml } from "../lib/sanitize";
 import { serializeToHtml } from "../lib/serializeHtml";
 import type { Post } from "../types";
+import type { FileItem } from "../types/upload";
 import { PlateEditor } from "./PlateEditor";
 
 type CreatePostModalProps = {
@@ -49,14 +59,18 @@ const initialValue: Value = [
   },
 ];
 
-// 媒体文件项组件
-interface MediaItemProps {
-  file: File;
+// 媒体文件项组件（已上传）
+interface UploadedMediaItemProps {
+  file: FileItem;
   id: string;
   onRemove: () => void;
 }
 
-function SortableMediaItem({ file, id, onRemove }: MediaItemProps) {
+function SortableUploadedMediaItem({
+  file,
+  id,
+  onRemove,
+}: UploadedMediaItemProps) {
   const {
     attributes,
     listeners,
@@ -72,14 +86,6 @@ function SortableMediaItem({ file, id, onRemove }: MediaItemProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const [preview, setPreview] = useState<string>("");
-
-  React.useEffect(() => {
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-
   const isVideo = file.type.startsWith("video/");
 
   return (
@@ -89,9 +95,13 @@ function SortableMediaItem({ file, id, onRemove }: MediaItemProps) {
       style={style}
     >
       {isVideo ? (
-        <video className="h-full w-full object-cover" src={preview} />
+        <video className="h-full w-full object-cover" src={file.url} />
       ) : (
-        <img alt="" className="h-full w-full object-cover" src={preview} />
+        <img
+          alt={file.name}
+          className="h-full w-full object-cover"
+          src={file.url}
+        />
       )}
 
       {/* 拖拽手柄 */}
@@ -131,9 +141,12 @@ export default function CreatePostModal({
   const [content, setContent] = useState<Value>(initialValue);
   const [tags, setTags] = useState("");
   const [location, setLocation] = useState("");
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FileItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 使用文件上传 Hook
+  const { uploadState, uploadMultipleFiles } = useFileUpload();
 
   // 拖拽排序传感器
   const sensors = useSensors(
@@ -145,9 +158,8 @@ export default function CreatePostModal({
 
   // 为每个文件生成唯一 ID
   const mediaItems = useMemo(
-    () =>
-      mediaFiles.map((file, index) => ({ file, id: `${file.name}-${index}` })),
-    [mediaFiles]
+    () => uploadedFiles.map((file) => ({ file, id: file.id })),
+    [uploadedFiles]
   );
 
   if (!isOpen) {
@@ -161,15 +173,34 @@ export default function CreatePostModal({
     if (over && active.id !== over.id) {
       const oldIndex = mediaItems.findIndex((item) => item.id === active.id);
       const newIndex = mediaItems.findIndex((item) => item.id === over.id);
-      const newFiles = arrayMove(mediaFiles, oldIndex, newIndex);
-      setMediaFiles(newFiles);
+      const newFiles = arrayMove(uploadedFiles, oldIndex, newIndex);
+      setUploadedFiles(newFiles);
     }
   };
 
-  // 处理文件选择
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 处理文件选择并上传
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setMediaFiles((prev) => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    try {
+      // 上传文件
+      const results = await uploadMultipleFiles(files, {
+        compressPNG: false,
+        compressJPEG: false,
+      });
+
+      // 添加到已上传列表
+      setUploadedFiles((prev) => [...prev, ...results]);
+
+      // 清空文件输入
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("上传失败:", error);
+      alert("文件上传失败，请重试");
+    }
   };
 
   // 处理拖拽
@@ -183,18 +214,32 @@ export default function CreatePostModal({
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+
     const files = Array.from(e.dataTransfer.files).filter(
       (file) => file.type.startsWith("image/") || file.type.startsWith("video/")
     );
-    setMediaFiles((prev) => [...prev, ...files]);
+
+    if (files.length === 0) return;
+
+    try {
+      const results = await uploadMultipleFiles(files, {
+        compressPNG: false,
+        compressJPEG: false,
+      });
+
+      setUploadedFiles((prev) => [...prev, ...results]);
+    } catch (error) {
+      console.error("上传失败:", error);
+      alert("文件上传失败，请重试");
+    }
   };
 
   // 删除文件
   const handleRemoveFile = (index: number) => {
-    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // 检查内容是否为空
@@ -235,25 +280,30 @@ export default function CreatePostModal({
         .map((tag) => tag.trim())
         .filter(Boolean),
       location: location || undefined,
-      images: [], // 简化版本暂不处理图片上传
+      images: uploadedFiles.map((file) => ({
+        id: Number(file.id) || 0,
+        url: file.url,
+        width: file.width || 0,
+        height: file.height || 0,
+        blurhash: file.blurhash || "",
+        type: file.type,
+        name: file.name,
+      })),
     };
 
     // 打印参数查看
     console.log("提交的数据：", postData);
-    console.log("原始 Plate Value：", content);
-    console.log("HTML 内容：", htmlContent);
-    console.log("清理后的内容：", sanitizedContent);
-    console.log("媒体文件：", mediaFiles);
+    console.log("上传的文件：", uploadedFiles);
 
-    // 暂时注释掉实际提交
-    // onSubmit(postData);
+    // 实际提交
+    onSubmit(postData);
 
     // 重置表单
     setTitle("");
     setContent(initialValue);
     setTags("");
     setLocation("");
-    setMediaFiles([]);
+    setUploadedFiles([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -272,6 +322,7 @@ export default function CreatePostModal({
             </div>
             <button
               className="rounded-full p-2 transition-all duration-200 hover:bg-gray-100"
+              disabled={uploadState.isUploading}
               onClick={onClose}
               type="button"
             >
@@ -296,6 +347,7 @@ export default function CreatePostModal({
               </label>
               <input
                 className="w-full rounded-xl border-0 bg-gray-50 px-4 py-3 text-base transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+                disabled={uploadState.isUploading}
                 id="post-title"
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="给你的动态起个吸引人的标题..."
@@ -330,7 +382,7 @@ export default function CreatePostModal({
                   isDragging
                     ? "border-black bg-gray-100"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
-                }`}
+                } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
@@ -352,6 +404,7 @@ export default function CreatePostModal({
                 <input
                   accept="image/*,video/*"
                   className="hidden"
+                  disabled={uploadState.isUploading}
                   id="post-media"
                   multiple
                   onChange={handleFileChange}
@@ -360,8 +413,34 @@ export default function CreatePostModal({
                 />
               </div>
 
+              {/* 上传进度 */}
+              {uploadState.isUploading && (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Loader2
+                        className="animate-spin text-blue-600"
+                        size={16}
+                      />
+                      <span className="font-medium text-blue-900 text-sm">
+                        {uploadState.stageText}
+                      </span>
+                    </div>
+                    <span className="text-blue-700 text-sm">
+                      {uploadState.progress}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-blue-200">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${uploadState.progress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* 媒体预览网格 */}
-              {mediaFiles.length > 0 && (
+              {uploadedFiles.length > 0 && (
                 <div className="mt-3 max-h-[300px] overflow-y-auto rounded-lg border border-gray-200 p-2">
                   <DndContext
                     collisionDetection={closestCenter}
@@ -374,7 +453,7 @@ export default function CreatePostModal({
                     >
                       <div className="grid grid-cols-3 gap-2">
                         {mediaItems.map((item, index) => (
-                          <SortableMediaItem
+                          <SortableUploadedMediaItem
                             file={item.file}
                             id={item.id}
                             key={item.id}
@@ -400,6 +479,7 @@ export default function CreatePostModal({
                 </label>
                 <input
                   className="w-full rounded-xl border-0 bg-gray-50 px-4 py-2.5 text-sm transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+                  disabled={uploadState.isUploading}
                   id="post-tags"
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="添加标签，用逗号分隔（如：旅行, 美食, 生活）"
@@ -418,6 +498,7 @@ export default function CreatePostModal({
                 </label>
                 <input
                   className="w-full rounded-xl border-0 bg-gray-50 px-4 py-2.5 text-sm transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
+                  disabled={uploadState.isUploading}
                   id="post-location"
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="添加位置信息（可选）"
@@ -431,10 +512,11 @@ export default function CreatePostModal({
           {/* 固定底部提交按钮 */}
           <div className="flex-shrink-0 border-t border-gray-100 p-6">
             <button
-              className="w-full transform rounded-xl bg-black py-3.5 font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-gray-800 active:scale-[0.98]"
+              className="w-full transform rounded-xl bg-black py-3.5 font-medium text-white transition-all duration-200 hover:scale-[1.02] hover:bg-gray-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              disabled={uploadState.isUploading}
               type="submit"
             >
-              发布动态
+              {uploadState.isUploading ? "上传中..." : "发布动态"}
             </button>
           </div>
         </form>
