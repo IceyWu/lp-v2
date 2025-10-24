@@ -1,8 +1,13 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import {
+  PROFILE_VALIDATION,
+  VALIDATION_MESSAGES,
+} from "../constants/validation";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { useUpdateProfile } from "../hooks/useUpdateProfile";
 import { ApiUser } from "../services/api";
+import { FormErrors } from "../types";
 import AvatarUpload from "./AvatarUpload";
 import { Button } from "./ui/button";
 import {
@@ -28,12 +33,6 @@ interface ProfileEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-}
-
-interface FormErrors {
-  name?: string;
-  signature?: string;
-  avatar?: string;
 }
 
 export default function ProfileEditDialog({
@@ -63,18 +62,18 @@ export default function ProfileEditDialog({
   // 验证昵称
   const validateName = (value: string): string | undefined => {
     if (!value || value.trim().length === 0) {
-      return "昵称不能为空";
+      return VALIDATION_MESSAGES.NAME_REQUIRED;
     }
-    if (value.length > 20) {
-      return "昵称不能超过20个字符";
+    if (value.length > PROFILE_VALIDATION.NAME.MAX_LENGTH) {
+      return VALIDATION_MESSAGES.NAME_TOO_LONG;
     }
     return undefined;
   };
 
   // 验证签名
   const validateSignature = (value: string): string | undefined => {
-    if (value.length > 100) {
-      return "签名不能超过100个字符";
+    if (value.length > PROFILE_VALIDATION.SIGNATURE.MAX_LENGTH) {
+      return VALIDATION_MESSAGES.SIGNATURE_TOO_LONG;
     }
     return undefined;
   };

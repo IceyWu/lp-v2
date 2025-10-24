@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { MESSAGES } from "../constants/messages";
 import { useLogin, useRegister } from "../hooks/useAuth";
 
 interface LoginModalProps {
@@ -77,18 +78,20 @@ export default function LoginModal({
     <Dialog onOpenChange={onClose} open={isOpen}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isLogin ? "登录" : "注册"}</DialogTitle>
+          <DialogTitle>
+            {isLogin ? MESSAGES.FORM.LOGIN : MESSAGES.FORM.REGISTER}
+          </DialogTitle>
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="account">账号</Label>
+            <Label htmlFor="account">{MESSAGES.FORM.ACCOUNT}</Label>
             <Input
               id="account"
               onChange={(e) =>
                 setFormData({ ...formData, account: e.target.value })
               }
-              placeholder="请输入账号"
+              placeholder={MESSAGES.FORM.PLACEHOLDER.ACCOUNT}
               required
               type="text"
               value={formData.account}
@@ -97,13 +100,13 @@ export default function LoginModal({
 
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="name">用户名</Label>
+              <Label htmlFor="name">{MESSAGES.FORM.USERNAME}</Label>
               <Input
                 id="name"
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="请输入用户名"
+                placeholder={MESSAGES.FORM.PLACEHOLDER.USERNAME}
                 required
                 type="text"
                 value={formData.name}
@@ -112,13 +115,13 @@ export default function LoginModal({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="password">密码</Label>
+            <Label htmlFor="password">{MESSAGES.FORM.PASSWORD}</Label>
             <Input
               id="password"
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              placeholder="请输入密码"
+              placeholder={MESSAGES.FORM.PLACEHOLDER.PASSWORD}
               required
               type="password"
               value={formData.password}
@@ -127,7 +130,7 @@ export default function LoginModal({
 
           {error && (
             <div className="text-destructive text-sm">
-              {error.message || "操作失败，请重试"}
+              {error.message || MESSAGES.ERROR.OPERATION_FAILED}
             </div>
           )}
 
@@ -137,10 +140,10 @@ export default function LoginModal({
             type="submit"
           >
             {currentMutation.isPending
-              ? "处理中..."
+              ? MESSAGES.FORM.PROCESSING
               : isLogin
-                ? "登录"
-                : "注册"}
+                ? MESSAGES.FORM.LOGIN
+                : MESSAGES.FORM.REGISTER}
           </Button>
         </form>
 
@@ -150,7 +153,9 @@ export default function LoginModal({
             onClick={() => setIsLogin(!isLogin)}
             variant="link"
           >
-            {isLogin ? "没有账号？去注册" : "已有账号？去登录"}
+            {isLogin
+              ? MESSAGES.BUTTON.NO_ACCOUNT_REGISTER
+              : MESSAGES.BUTTON.HAS_ACCOUNT_LOGIN}
           </Button>
         </div>
       </DialogContent>

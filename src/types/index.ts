@@ -39,3 +39,16 @@ export interface Comment {
   likes: number;
   isLiked: boolean;
 }
+
+// 用户资料更新相关类型
+export interface UpdateProfileData {
+  name?: string;
+  signature?: string;
+  avatarFile?: File | null;
+}
+
+export interface FormErrors {
+  name?: string;
+  signature?: string;
+  avatar?: string;
+}

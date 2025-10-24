@@ -1,6 +1,10 @@
 import { Hash, Image, MapPin, X } from "lucide-react";
+import type { Value } from "platejs";
 import { useState } from "react";
+import { sanitizeHtml } from "../lib/sanitize";
+import { serializeToHtml } from "../lib/serializeHtml";
 import type { Post } from "../types";
+import { PlateEditor } from "./PlateEditor";
 
 type CreatePostModalProps = {
   isOpen: boolean;
@@ -20,13 +24,21 @@ type CreatePostModalProps = {
   ) => void;
 };
 
+// 初始空值
+const initialValue: Value = [
+  {
+    type: "p",
+    children: [{ text: "" }],
+  },
+];
+
 export default function CreatePostModal({
   isOpen,
   onClose,
   onSubmit,
 }: CreatePostModalProps) {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState<Value>(initialValue);
   const [tags, setTags] = useState("");
   const [location, setLocation] = useState("");
 
@@ -34,12 +46,39 @@ export default function CreatePostModal({
     return null;
   }
 
+  // 检查内容是否为空
+  const isContentEmpty = (value: Value) => {
+    return value.every((node) => {
+      if ("children" in node) {
+        return node.children.every((child) => {
+          if (typeof child === "object" && child !== null && "text" in child) {
+            return typeof child.text === "string" && child.text.trim() === "";
+          }
+          return false;
+        });
+      }
+      return false;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 验证内容不为空
+    if (isContentEmpty(content)) {
+      alert("请输入内容");
+      return;
+    }
+
+    // 将 Plate Value 转换为 HTML 字符串
+    const htmlContent = serializeToHtml(content);
+
+    // 清理 HTML 以防止 XSS 攻击
+    const sanitizedContent = sanitizeHtml(htmlContent);
+
     const postData = {
       title,
-      content,
+      content: sanitizedContent,
       tags: tags
         .split(",")
         .map((tag) => tag.trim())
@@ -52,7 +91,7 @@ export default function CreatePostModal({
 
     // 重置表单
     setTitle("");
-    setContent("");
+    setContent(initialValue);
     setTags("");
     setLocation("");
     onClose();
@@ -109,13 +148,9 @@ export default function CreatePostModal({
             >
               内容
             </label>
-            <textarea
-              className="w-full resize-none rounded-xl border-0 bg-gray-50 px-4 py-3 text-base transition-all placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-black/10"
-              id="post-content"
-              onChange={(e) => setContent(e.target.value)}
+            <PlateEditor
+              onChange={setContent}
               placeholder="分享你的想法、感受或故事..."
-              required
-              rows={5}
               value={content}
             />
           </div>

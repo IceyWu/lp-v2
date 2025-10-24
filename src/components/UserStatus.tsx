@@ -1,4 +1,5 @@
 import { LogIn, User } from "lucide-react";
+import { MESSAGES } from "../constants/messages";
 import { useIsAuthenticated } from "../hooks/useAuth";
 
 interface UserStatusProps {
@@ -16,7 +17,7 @@ export default function UserStatus({
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div className="h-4 w-4 animate-pulse rounded-full bg-gray-300" />
-        <span className="text-gray-500 text-sm">加载中...</span>
+        <span className="text-gray-500 text-sm">{MESSAGES.STATUS.LOADING}</span>
       </div>
     );
   }
@@ -27,7 +28,9 @@ export default function UserStatus({
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
           <User className="text-green-600" size={14} />
         </div>
-        <span className="text-gray-700 text-sm">欢迎，{user.name}</span>
+        <span className="text-gray-700 text-sm">
+          {MESSAGES.STATUS.WELCOME(user.name)}
+        </span>
       </div>
     );
   }
@@ -38,7 +41,7 @@ export default function UserStatus({
       onClick={onLogin}
     >
       <LogIn size={14} />
-      <span>点击登录</span>
+      <span>{MESSAGES.STATUS.CLICK_TO_LOGIN}</span>
     </button>
   );
 }

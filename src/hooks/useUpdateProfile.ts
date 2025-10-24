@@ -1,12 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import imageCompression from "browser-image-compression";
+import { PROFILE_VALIDATION } from "../constants/validation";
 import { apiService } from "../services/api";
-
-interface UpdateProfileData {
-  name?: string;
-  signature?: string;
-  avatarFile?: File | null;
-}
+import { UpdateProfileData } from "../types";
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient();
@@ -19,8 +15,9 @@ export const useUpdateProfile = () => {
       if (data.avatarFile) {
         // 压缩图片
         const compressedFile = await imageCompression(data.avatarFile, {
-          maxSizeMB: 1,
-          maxWidthOrHeight: 800,
+          maxSizeMB: PROFILE_VALIDATION.AVATAR.COMPRESSION.MAX_SIZE_MB,
+          maxWidthOrHeight:
+            PROFILE_VALIDATION.AVATAR.COMPRESSION.MAX_WIDTH_OR_HEIGHT,
           useWebWorker: true,
         });
 
@@ -58,9 +55,8 @@ export const useUpdateProfile = () => {
       // 刷新用户数据缓存
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
     },
-    onError: (error: Error) => {
+    onError: () => {
       // 错误会被组件捕获并处理
-      console.error("更新用户信息失败:", error);
     },
   });
 };

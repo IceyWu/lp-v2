@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { MESSAGES } from "../constants/messages";
 import type { Post } from "../types";
+import { formatRelativeTime } from "../utils/date";
 import ErrorBoundary from "./ErrorBoundary";
 import ImageGallery from "./ImageGallery";
 import ImagePreview from "./ImagePreview";
@@ -23,24 +25,6 @@ export default function PostCard({
   onClick,
 }: PostCardProps) {
   const [imagePreviewIndex, setImagePreviewIndex] = useState(-1);
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-
-    if (hours < 1) {
-      return "刚刚";
-    }
-    if (hours < 24) {
-      return `${hours}小时前`;
-    }
-    if (hours < 48) {
-      return "1天前";
-    }
-    return `${Math.floor(hours / 24)}天前`;
-  };
 
   const handleImageClick = (index: number) => {
     setImagePreviewIndex(index);
@@ -62,7 +46,9 @@ export default function PostCard({
             <ErrorBoundary
               fallback={
                 <div className="flex h-48 w-full items-center justify-center bg-gray-200">
-                  <span className="text-gray-500">图片加载失败</span>
+                  <span className="text-gray-500">
+                    {MESSAGES.ERROR.IMAGE_LOAD_FAILED}
+                  </span>
                 </div>
               }
             >
@@ -151,7 +137,7 @@ export default function PostCard({
                 {post.author.name}
               </div>
               <div className="text-muted-foreground text-xs">
-                {formatTime(post.createdAt)}
+                {formatRelativeTime(post.createdAt)}
               </div>
             </div>
           </div>

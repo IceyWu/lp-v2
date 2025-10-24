@@ -1,5 +1,9 @@
 import { Camera } from "lucide-react";
 import { useRef } from "react";
+import {
+  PROFILE_VALIDATION,
+  VALIDATION_MESSAGES,
+} from "../constants/validation";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 interface AvatarUploadProps {
@@ -28,16 +32,18 @@ export default function AvatarUpload({
     if (!file) return;
 
     // 验证文件类型
-    const validTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      onError("请选择 JPG、PNG 或 WEBP 格式的图片");
+    if (
+      !(PROFILE_VALIDATION.AVATAR.ALLOWED_TYPES as readonly string[]).includes(
+        file.type
+      )
+    ) {
+      onError(VALIDATION_MESSAGES.AVATAR_INVALID_TYPE);
       return;
     }
 
-    // 验证文件大小（最大 5MB）
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (file.size > maxSize) {
-      onError("图片大小不能超过 5MB");
+    // 验证文件大小
+    if (file.size > PROFILE_VALIDATION.AVATAR.MAX_SIZE) {
+      onError(VALIDATION_MESSAGES.AVATAR_TOO_LARGE);
       return;
     }
 
