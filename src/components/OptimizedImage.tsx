@@ -24,7 +24,7 @@ const generateOssParams = (
 
   // 阿里云OSS图片处理参数
   // 使用resize,w_xxx,h_xxx,m_lfit来等比例缩放
-  return `?x-oss-process=image/resize,w_${targetWidth},h_${targetHeight},m_lfit/quality,q_80/format,webp`;
+  return `?x-oss-process=image/resize,w_${targetWidth},h_${targetHeight},m_lfit/quality,q_60/format,webp`;
 };
 
 export default function OptimizedImage({

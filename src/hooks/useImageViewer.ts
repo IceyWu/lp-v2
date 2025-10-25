@@ -129,7 +129,7 @@ export function useImageViewer(initialOptions: ViewerProOptions = {}) {
     (postImages: PostImage[]): ImageObj[] => {
       return postImages.map((img) => ({
         src: img.url,
-        thumbnail: img.url, // 如果有缩略图字段可以使用，否则使用原图
+        thumbnail: `${img.url}?x-oss-process=image/resize,w_300,h_200,m_lfit/quality,q_60/format,webp`,
         title: img.name,
       }));
     },
