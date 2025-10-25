@@ -91,7 +91,7 @@ export default function ImageGallery({
           // 注意：避免 <button> 内再嵌套 <button> 导致的 hydration 报错。
           // 结构：外层 div 容器；内部一个铺满的 button 处理图片点击；当为最后一张且有剩余时，再渲染一个覆盖层 button（兄弟节点）。
           return (
-            <div className="relative overflow-hidden rounded-lg" key={image.id}>
+            <div className="relative overflow-hidden rounded-lg" key={`${image.id}-${index}`}>
               {/* 基础图片点击区域 */}
               <button
                 className="block h-full w-full cursor-pointer transition-opacity hover:opacity-90"

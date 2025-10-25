@@ -1,4 +1,4 @@
-import { Children, type ReactNode } from "react";
+import { Children, type ReactNode, useMemo } from "react";
 
 interface MasonryLayoutProps {
   children: ReactNode[];
@@ -15,25 +15,28 @@ export default function MasonryLayout({
 }: MasonryLayoutProps) {
   const items = Children.toArray(children);
 
+  // 将子元素分配到各列（横向优先）
+  const columnItems = useMemo(() => {
+    const cols: ReactNode[][] = Array.from({ length: columns }, () => []);
+    
+    items.forEach((item, index) => {
+      // 横向分配：按顺序分配到各列
+      const columnIndex = index % columns;
+      cols[columnIndex].push(item);
+    });
+    
+    return cols;
+  }, [items, columns]);
+
   return (
-    <div
-      className={`w-full ${className}`}
-      style={{
-        columnCount: columns,
-        columnGap: `${gap}px`,
-        columnFill: "balance",
-      }}
-    >
-      {items.map((child) => (
+    <div className={`flex ${className}`} style={{ gap: `${gap}px` }}>
+      {columnItems.map((columnChildren, columnIndex) => (
         <div
-          className="mb-4 w-full break-inside-avoid"
-          key={(child as any).key ?? undefined}
-          style={{
-            display: "inline-block",
-            width: "100%",
-          }}
+          className="flex flex-1 flex-col"
+          key={columnIndex}
+          style={{ gap: `${gap}px` }}
         >
-          {child}
+          {columnChildren}
         </div>
       ))}
     </div>

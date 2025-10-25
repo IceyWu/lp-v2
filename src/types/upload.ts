@@ -47,6 +47,12 @@ export interface OSSSignature {
   hasUpload?: boolean;
   fileUrl?: string;
   url?: string;
+  id?: string;
+  videoSrc?: string;
+  blurhash?: string;
+  width?: number;
+  height?: number;
+  [key: string]: any;
 }
 
 /** 上传错误码 */

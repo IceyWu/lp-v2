@@ -12,12 +12,14 @@ export interface Post {
   id: string;
   title: string;
   content: string;
-  images: PostImage[];
+  images?: PostImage[];
+  fileIds?: (number | string)[];
+  tagIds?: (number | string)[];
   author: {
     name: string;
     avatar: string;
   };
-  tags: string[];
+  tags?: string[];
   likes: number;
   comments: number;
   saves: number;

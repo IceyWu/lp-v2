@@ -72,44 +72,71 @@ export async function processLivePhotoFiles(
       if (matchingImageIndex !== -1) {
         const imageFile = uploadedFiles[matchingImageIndex];
 
-        // 如果图片文件已经有视频源，跳过视频文件
+        // 如果图片文件已经有视频源，直接使用该图片文件，跳过视频文件
         if (imageFile.videoSrc) {
-          continue;
-        }
-
-        // 更新图片文件的视频源
-        try {
-          const response = await updateFileInfo({
-            id: imageFile.id,
-            videoSrc: file.url,
-          });
-
-          if (response.code === 200 && response.result.videoSrc) {
-            // 创建更新后的文件对象
-            const updatedImageFile = {
-              ...imageFile,
-              videoSrc: response.result.videoSrc,
-            };
-
-            // 如果该图片已经被处理过，替换它
-            const existingIndex = processedFiles.findIndex(
-              (item) => item.id === updatedImageFile.id
-            );
-
-            if (existingIndex !== -1) {
-              processedFiles[existingIndex] = updatedImageFile;
-            } else {
-              processedFiles.push(updatedImageFile);
-            }
-
-            processedIds.add(imageFile.id);
-          }
-        } catch (error) {
-          console.error("更新视频源失败:", error);
-          // 失败时添加原图片文件
           if (!processedIds.has(imageFile.id)) {
             processedFiles.push(imageFile);
             processedIds.add(imageFile.id);
+          }
+          continue;
+        }
+
+        // 检查是否是已上传的文件（hasUpload: true）
+        const isAlreadyUploaded = "hasUpload" in file && file.hasUpload === true;
+        
+        if (isAlreadyUploaded) {
+          // 已上传的文件，直接使用视频的 URL 更新图片
+          const updatedImageFile = {
+            ...imageFile,
+            videoSrc: file.url,
+          };
+
+          const existingIndex = processedFiles.findIndex(
+            (item) => item.id === updatedImageFile.id
+          );
+
+          if (existingIndex !== -1) {
+            processedFiles[existingIndex] = updatedImageFile;
+          } else {
+            processedFiles.push(updatedImageFile);
+          }
+
+          processedIds.add(imageFile.id);
+        } else {
+          // 新上传的文件，需要调用接口更新
+          try {
+            const response = await updateFileInfo({
+              id: imageFile.id,
+              videoSrc: file.url,
+            });
+
+            if (response.code === 200 && response.result.videoSrc) {
+              // 创建更新后的文件对象
+              const updatedImageFile = {
+                ...imageFile,
+                videoSrc: response.result.videoSrc,
+              };
+
+              // 如果该图片已经被处理过，替换它
+              const existingIndex = processedFiles.findIndex(
+                (item) => item.id === updatedImageFile.id
+              );
+
+              if (existingIndex !== -1) {
+                processedFiles[existingIndex] = updatedImageFile;
+              } else {
+                processedFiles.push(updatedImageFile);
+              }
+
+              processedIds.add(imageFile.id);
+            }
+          } catch (error) {
+            console.error("更新视频源失败:", error);
+            // 失败时添加原图片文件
+            if (!processedIds.has(imageFile.id)) {
+              processedFiles.push(imageFile);
+              processedIds.add(imageFile.id);
+            }
           }
         }
       } else {

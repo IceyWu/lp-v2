@@ -39,7 +39,6 @@ export async function uploadFile(
   options: UploadOptions = {}
 ): Promise<FileItem> {
   const { compressPNG = false, compressJPEG = false, onProgress } = options;
-  console.log("🍪-----options-----", options);
 
   let processedFile = file;
 
@@ -77,19 +76,20 @@ export async function uploadFile(
     }
 
     const ossData = signatureResponse.result;
-    console.log(ossData, "--------------ossData");
 
     // 4. 检查是否已上传
     if (ossData.hasUpload && ossData.url) {
-      // 文件已存在，直接返回
+      // 文件已存在，直接返回完整的文件信息
       return {
-        id: md5,
+        ...ossData,
+        id: ossData.id || md5,
         name: file.name,
         type: file.type,
         url: ossData.url,
         size: file.size,
         md5,
-      };
+        hasUpload: true,
+      } as FileItem;
     }
 
     // 5. 上传到 OSS
