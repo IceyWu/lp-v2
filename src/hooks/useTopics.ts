@@ -67,6 +67,7 @@ export const useInfiniteTopics = (params?: {
 }) => {
   return useInfiniteQuery({
     queryKey: ["topics", "infinite", params],
+    initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await apiService.getTopics({
         ...params,
@@ -207,12 +208,14 @@ export const useCreateTopic = () => {
       images?: string[];
       tags?: string[];
       location?: string;
+      fileIds?: (number | string)[];
+      tagIds?: (number | string)[];
     }) => {
       const response = await apiService.createTopic(data);
       if (response.code === 200 && response.result) {
         return transformApiTopicToPost(response.result);
       }
-      throw new Error(response.message || "创建话题失败");
+      throw new Error(response.msg || "创建话题失败");
     },
     onSuccess: (newPost) => {
       // 将新话题添加到普通查询缓存的开头
@@ -245,6 +248,7 @@ export const useCreateTopic = () => {
 export const useInfiniteLikedTopics = (userId?: number) => {
   return useInfiniteQuery({
     queryKey: ["likedTopics", "infinite", userId],
+    initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       if (!userId) {
         return {

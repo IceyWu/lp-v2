@@ -375,7 +375,7 @@ export default function CreatePostModal({
         content: sanitizedContent,
         tagIds: [1],
         // location: location || undefined,
-        fileIds: uploadedFiles.map((file) => file.id),
+        fileIds: uploadedFiles.map((file) => file.id).reverse(),
       };
 
       // 6. 实际提交

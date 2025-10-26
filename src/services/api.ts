@@ -221,6 +221,8 @@ class ApiService {
     images?: string[];
     tags?: string[];
     location?: string;
+    fileIds?: (number | string)[];
+    tagIds?: (number | string)[];
   }): Promise<ApiResponse<ApiTopic>> {
     return this.request<ApiTopic>("/api/topic", {
       method: "POST",

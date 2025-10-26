@@ -48,9 +48,10 @@ export default function PageLayout({
     createTopicMutation.mutate({
       title: postData.title,
       content: postData.content,
-      images: postData.images.map((img) => img.url),
-      tags: postData.tags,
-      location: postData.location,
+      // images: postData.images.map((img) => img.url),
+      fileIds: postData.fileIds,
+      tagIds: postData.tagIds,
+      // location: postData.location,
     });
   };
 
