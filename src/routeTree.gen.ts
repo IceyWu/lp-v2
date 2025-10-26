@@ -14,37 +14,19 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as UploadDemoImport } from './routes/upload-demo'
-import { Route as TrendingImport } from './routes/trending'
 import { Route as SearchImport } from './routes/search'
-import { Route as SavedImport } from './routes/saved'
 import { Route as ProfileImport } from './routes/profile'
-import { Route as LikesImport } from './routes/likes'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
-
-const TrendingRoute = TrendingImport.update({
-  path: '/trending',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const SearchRoute = SearchImport.update({
   path: '/search',
   getParentRoute: () => rootRoute,
 } as any)
 
-const SavedRoute = SavedImport.update({
-  path: '/saved',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const ProfileRoute = ProfileImport.update({
   path: '/profile',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LikesRoute = LikesImport.update({
-  path: '/likes',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -64,25 +46,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/likes': {
-      id: '/likes'
-      path: '/likes'
-      fullPath: '/likes'
-      preLoaderRoute: typeof LikesImport
-      parentRoute: typeof rootRoute
-    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileImport
-      parentRoute: typeof rootRoute
-    }
-    '/saved': {
-      id: '/saved'
-      path: '/saved'
-      fullPath: '/saved'
-      preLoaderRoute: typeof SavedImport
       parentRoute: typeof rootRoute
     }
     '/search': {
@@ -92,13 +60,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchImport
       parentRoute: typeof rootRoute
     }
-    '/trending': {
-      id: '/trending'
-      path: '/trending'
-      fullPath: '/trending'
-      preLoaderRoute: typeof TrendingImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -106,11 +67,8 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
-  LikesRoute,
   ProfileRoute,
-  SavedRoute,
   SearchRoute,
-  TrendingRoute,
 })
 
 /* prettier-ignore-end */

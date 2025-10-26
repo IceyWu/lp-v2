@@ -82,8 +82,9 @@ export async function processLivePhotoFiles(
         }
 
         // 检查是否是已上传的文件（hasUpload: true）
-        const isAlreadyUploaded = "hasUpload" in file && file.hasUpload === true;
-        
+        const isAlreadyUploaded =
+          "hasUpload" in file && file.hasUpload === true;
+
         if (isAlreadyUploaded) {
           // 已上传的文件，直接使用视频的 URL 更新图片
           const updatedImageFile = {

@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { Bookmark, Heart, Home, Search, TrendingUp, User } from "lucide-react";
+import { Home, Search, User } from "lucide-react";
 import { useIsAuthenticated } from "../hooks/useAuth";
 
 interface FloatingNavBarProps {
@@ -22,27 +22,6 @@ export default function FloatingNavBar({
       label: "发现",
       requireAuth: false,
       path: "/search",
-    },
-    {
-      id: "trending",
-      icon: TrendingUp,
-      label: "热门",
-      requireAuth: false,
-      path: "/trending",
-    },
-    {
-      id: "likes",
-      icon: Heart,
-      label: "喜欢",
-      requireAuth: true,
-      path: "/likes",
-    },
-    {
-      id: "saved",
-      icon: Bookmark,
-      label: "收藏",
-      requireAuth: true,
-      path: "/saved",
     },
     {
       id: "profile",
@@ -92,6 +71,7 @@ export default function FloatingNavBar({
                     : "text-gray-500 hover:scale-105 hover:bg-gray-100 hover:text-black"
                 }`}
                 key={item.id}
+                title={item.label}
                 to={item.path}
               >
                 <Icon className={isActive ? "drop-shadow-sm" : ""} size={18} />

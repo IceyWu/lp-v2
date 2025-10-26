@@ -18,13 +18,13 @@ export default function MasonryLayout({
   // 将子元素分配到各列（横向优先）
   const columnItems = useMemo(() => {
     const cols: ReactNode[][] = Array.from({ length: columns }, () => []);
-    
+
     items.forEach((item, index) => {
       // 横向分配：按顺序分配到各列
       const columnIndex = index % columns;
       cols[columnIndex].push(item);
     });
-    
+
     return cols;
   }, [items, columns]);
 

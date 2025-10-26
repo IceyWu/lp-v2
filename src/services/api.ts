@@ -356,6 +356,30 @@ class ApiService {
     return this.request(`/api/like/stats/${topicId}`);
   }
 
+  // 获取用户喜欢的话题列表
+  async getUserLikedTopics(
+    userId: number,
+    params?: {
+      page?: number;
+      size?: number;
+    }
+  ): Promise<ApiResponse<PaginatedResponse<ApiTopic>>> {
+    const searchParams = new URLSearchParams();
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/like/findByuserId?userId=${userId}${queryString ? `&${queryString}` : ""}`;
+
+    return this.request<PaginatedResponse<ApiTopic>>(endpoint);
+  }
+
   // 获取用户旅行统计
   async getUserTravelStats(userId: number): Promise<ApiResponse<any>> {
     return this.request(`/api/user/${userId}/travel-stats`);

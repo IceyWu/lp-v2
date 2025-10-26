@@ -111,13 +111,13 @@ function SortableMediaItem({ file, id, onRemove, videoFile }: MediaItemProps) {
           container: livePhotoRef.current,
           photoSrc: preview,
           videoSrc: videoPreview,
-          height: '100%',
-          width: '100%',
+          height: "100%",
+          width: "100%",
           imageCustomization: {
             styles: {
               objectFit: "cover",
             },
-          }
+          },
         });
       } catch (error) {
         console.error("Live Photo 初始化失败:", error);
@@ -242,14 +242,22 @@ export default function CreatePostModal({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldDisplayIndex = mediaItems.findIndex((item) => item.id === active.id);
-      const newDisplayIndex = mediaItems.findIndex((item) => item.id === over.id);
+      const oldDisplayIndex = mediaItems.findIndex(
+        (item) => item.id === active.id
+      );
+      const newDisplayIndex = mediaItems.findIndex(
+        (item) => item.id === over.id
+      );
 
       // 使用 originalIndex 来移动原始文件数组
       const oldOriginalIndex = mediaItems[oldDisplayIndex].originalIndex;
       const newOriginalIndex = mediaItems[newDisplayIndex].originalIndex;
 
-      const newFiles = arrayMove(selectedFiles, oldOriginalIndex, newOriginalIndex);
+      const newFiles = arrayMove(
+        selectedFiles,
+        oldOriginalIndex,
+        newOriginalIndex
+      );
       setSelectedFiles(newFiles);
     }
   };
@@ -353,7 +361,7 @@ export default function CreatePostModal({
           "../utils/upload/fileProcessor"
         );
         uploadedFiles = await processLivePhotoFiles(rawUploadedFiles);
-        console.log('🌈-----uploadedFiles-----', uploadedFiles);
+        console.log("🌈-----uploadedFiles-----", uploadedFiles);
       }
       // 3. 将 Plate Value 转换为 HTML 字符串
       const htmlContent = serializeToHtml(content);
@@ -370,9 +378,8 @@ export default function CreatePostModal({
         fileIds: uploadedFiles.map((file) => file.id),
       };
 
-
       // 6. 实际提交
-      console.log('🍪-----postData-----', postData);
+      console.log("🍪-----postData-----", postData);
       onSubmit(postData);
 
       // 7. 重置表单
@@ -459,10 +466,11 @@ export default function CreatePostModal({
                 图片/视频（可选）
               </label>
               <div
-                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${isDragging
-                  ? "border-black bg-gray-100"
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
-                  } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
+                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                  isDragging
+                    ? "border-black bg-gray-100"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
+                } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}

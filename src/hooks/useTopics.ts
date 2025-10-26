@@ -240,3 +240,47 @@ export const useCreateTopic = () => {
     onError: (_error) => {},
   });
 };
+
+// 获取用户喜欢的话题列表（无限滚动版本）
+export const useInfiniteLikedTopics = (userId?: number) => {
+  return useInfiniteQuery({
+    queryKey: ["likedTopics", "infinite", userId],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!userId) {
+        return {
+          items: [],
+          total: 0,
+          page: 1,
+          size: 20,
+          totalPages: 0,
+          hasNextPage: false,
+        };
+      }
+
+      const response = await apiService.getUserLikedTopics(userId, {
+        page: pageParam,
+        size: 20,
+      });
+
+      if (response.code === 200 && response.result) {
+        return {
+          items: response.result.data.map(transformApiTopicToPost),
+          total: response.result.meta.totalElements,
+          page: response.result.meta.current_page,
+          size: response.result.meta.size,
+          totalPages: response.result.meta.totalPages,
+          hasNextPage:
+            response.result.meta.current_page < response.result.meta.totalPages,
+        };
+      }
+      throw new Error(response.msg || "获取喜欢列表失败");
+    },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.page + 1 : undefined,
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+};
