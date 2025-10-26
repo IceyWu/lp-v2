@@ -10,6 +10,7 @@ import { formatRelativeTime } from "../utils/date";
 import ErrorBoundary from "./ErrorBoundary";
 import ImageGallery from "./ImageGallery";
 import ImagePreview from "./ImagePreview";
+import RichTextContent from "./RichTextContent";
 
 interface PostCardProps {
   post: Post;
@@ -91,15 +92,13 @@ export default function PostCard({
           >
             {post.title}
           </h3>
-          <p
+          <RichTextContent
             className={`mb-4 text-muted-foreground leading-relaxed ${
-              post.images.length === 0
-                ? "line-clamp-5 text-base"
-                : "line-clamp-3 text-sm"
+              post.images.length === 0 ? "text-base" : "text-sm"
             }`}
-          >
-            {post.content}
-          </p>
+            content={post.content}
+            maxLines={post.images.length === 0 ? 5 : 3}
+          />
 
           {/* 标签 */}
           {post.tags.length > 0 && (
