@@ -395,6 +395,19 @@ class ApiService {
     return this.request(`/api/user/${userId}/travel-stats`);
   }
 
+  // 获取用户互动统计
+  async getUserStats(userId: number): Promise<
+    ApiResponse<{
+      userId: number;
+      likeCount: number;
+      collectionCount: number;
+      followingCount: number;
+      followerCount: number;
+    }>
+  > {
+    return this.request(`/api/user/${userId}/stats`);
+  }
+
   // 获取用户访问过的城市
   async getUserCities(
     userId: number,

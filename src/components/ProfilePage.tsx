@@ -8,6 +8,7 @@ import {
   useInfiniteTopics,
   useLikeTopic,
 } from "../hooks/useTopics";
+import { useUserStats } from "../hooks/useUserStats";
 import LoadingSpinner from "./LoadingSpinner";
 import ProfileEditDialog from "./ProfileEditDialog";
 import SimpleImageDetail from "./SimpleImageDetail";
@@ -53,6 +54,9 @@ export default function ProfilePage() {
 
   const likeMutation = useLikeTopic();
   const collectMutation = useCollectTopic();
+
+  // 获取用户统计数据
+  const { data: userStats } = useUserStats(user?.id);
 
   const posts = topicsData?.pages.flatMap((page: any) => page.items) || [];
   const likedPosts =
@@ -137,18 +141,39 @@ export default function ProfilePage() {
     );
   }
 
-  // 模拟统计数据，后续可以通过API获取
+  // 统计数据
   const stats = [
-    { label: "动态", value: "0" },
-    { label: "关注", value: "0" },
-    { label: "粉丝", value: "0" },
+    { label: "动态", value: posts.length.toString() },
+    {
+      label: "关注",
+      value: userStats?.followingCount?.toString() || "0",
+    },
+    {
+      label: "粉丝",
+      value: userStats?.followerCount?.toString() || "0",
+    },
   ];
 
   const tabs = [
-    { id: "posts", icon: Grid, label: "动态" },
+    {
+      id: "posts",
+      icon: Grid,
+      label: "动态",
+      count: topicsData?.pages[0]?.total,
+    },
     { id: "track", icon: Map, label: "轨迹" },
-    { id: "liked", icon: Heart, label: "喜欢" },
-    { id: "saved", icon: Bookmark, label: "收藏" },
+    {
+      id: "liked",
+      icon: Heart,
+      label: "喜欢",
+      count: userStats?.likeCount,
+    },
+    {
+      id: "saved",
+      icon: Bookmark,
+      label: "收藏",
+      count: userStats?.collectionCount,
+    },
   ];
 
   return (
@@ -212,15 +237,27 @@ export default function ProfilePage() {
 
             return (
               <button
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 transition-all ${isActive
-                  ? "bg-black text-white"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                  }`}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 transition-all ${
+                  isActive
+                    ? "bg-black text-white"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                }`}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
               >
                 <Icon size={16} />
                 <span className="font-medium text-sm">{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span
+                    className={`ml-1 rounded-full px-2 py-0.5 text-xs ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
               </button>
             );
           })}
