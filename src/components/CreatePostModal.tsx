@@ -544,7 +544,7 @@ export default function CreatePostModal({
         const newFileIds = uploadedFiles.map((file) => file.id);
         // 合并（已有图片在前，新图片在后）
         if (existingFileIds.length > 0 || newFileIds.length > 0) {
-          postData.fileIds = [...existingFileIds, ...newFileIds];
+          postData.fileIds = [...existingFileIds, ...newFileIds].reverse();
         }
       } else {
         // 创建模式
