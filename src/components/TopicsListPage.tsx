@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import { useIsAuthenticated } from "../hooks/useAuth";
-import { useInfiniteTopics, useLikeTopic } from "../hooks/useTopics";
+import {
+  useCollectTopic,
+  useInfiniteTopics,
+  useLikeTopic,
+} from "../hooks/useTopics";
 import LoadingSpinner from "./LoadingSpinner";
 import PageLayout from "./PageLayout";
 import SimpleImageDetail from "./SimpleImageDetail";
@@ -39,6 +43,7 @@ export default function TopicsListPage({
 
   const { isAuthenticated } = useIsAuthenticated();
   const likeMutation = useLikeTopic();
+  const collectMutation = useCollectTopic();
 
   const posts = topicsData?.pages.flatMap((page: any) => page.items) || [];
 
@@ -63,13 +68,23 @@ export default function TopicsListPage({
   );
 
   const handleSave = useCallback(
-    (_postId: string) => {
+    (postId: string) => {
       if (!isAuthenticated) {
         setIsLoginModalOpen(true);
         return;
       }
+
+      const post = posts.find((p) => p.id === postId);
+      if (!post) {
+        return;
+      }
+
+      collectMutation.mutate({
+        topicId: Number(postId),
+        isCollected: post.isSaved,
+      });
     },
-    [isAuthenticated]
+    [posts, isAuthenticated, collectMutation]
   );
 
   const handlePostClick = useCallback((postId: string) => {

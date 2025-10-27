@@ -2,6 +2,8 @@ import { Bookmark, Camera, Grid, Heart, Map, Settings } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useIsAuthenticated } from "../hooks/useAuth";
 import {
+  useCollectTopic,
+  useInfiniteCollectedTopics,
   useInfiniteLikedTopics,
   useInfiniteTopics,
   useLikeTopic,
@@ -40,15 +42,27 @@ export default function ProfilePage() {
     isFetchingNextPage: isFetchingNextLikedPage,
   } = useInfiniteLikedTopics(user?.id);
 
+  // 获取用户收藏的动态数据
+  const {
+    data: collectedTopicsData,
+    isLoading: isLoadingCollectedTopics,
+    fetchNextPage: fetchNextCollectedPage,
+    hasNextPage: hasNextCollectedPage,
+    isFetchingNextPage: isFetchingNextCollectedPage,
+  } = useInfiniteCollectedTopics(user?.id);
+
   const likeMutation = useLikeTopic();
+  const collectMutation = useCollectTopic();
 
   const posts = topicsData?.pages.flatMap((page: any) => page.items) || [];
   const likedPosts =
     likedTopicsData?.pages.flatMap((page: any) => page.items) || [];
+  const collectedPosts =
+    collectedTopicsData?.pages.flatMap((page: any) => page.items) || [];
 
   const handleLike = useCallback(
     (postId: string) => {
-      const allPosts = [...posts, ...likedPosts];
+      const allPosts = [...posts, ...likedPosts, ...collectedPosts];
       const post = allPosts.find((p) => p.id === postId);
       if (!post) return;
 
@@ -57,12 +71,22 @@ export default function ProfilePage() {
         isLiked: post.isLiked,
       });
     },
-    [posts, likedPosts, likeMutation]
+    [posts, likedPosts, collectedPosts, likeMutation]
   );
 
-  const handleSave = useCallback((_postId: string) => {
-    // TODO: 实现收藏功能
-  }, []);
+  const handleSave = useCallback(
+    (postId: string) => {
+      const allPosts = [...posts, ...likedPosts, ...collectedPosts];
+      const post = allPosts.find((p) => p.id === postId);
+      if (!post) return;
+
+      collectMutation.mutate({
+        topicId: Number(postId),
+        isCollected: post.isSaved,
+      });
+    },
+    [posts, likedPosts, collectedPosts, collectMutation]
+  );
 
   const handlePostClick = useCallback((postId: string) => {
     setSelectedTopicId(Number(postId));
@@ -77,6 +101,10 @@ export default function ProfilePage() {
       if (hasNextLikedPage && !isFetchingNextLikedPage) {
         fetchNextLikedPage();
       }
+    } else if (activeTab === "saved") {
+      if (hasNextCollectedPage && !isFetchingNextCollectedPage) {
+        fetchNextCollectedPage();
+      }
     }
   }, [
     activeTab,
@@ -86,6 +114,9 @@ export default function ProfilePage() {
     hasNextLikedPage,
     isFetchingNextLikedPage,
     fetchNextLikedPage,
+    hasNextCollectedPage,
+    isFetchingNextCollectedPage,
+    fetchNextCollectedPage,
   ]);
 
   if (isLoading) {
@@ -181,11 +212,10 @@ export default function ProfilePage() {
 
             return (
               <button
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 transition-all ${
-                  isActive
-                    ? "bg-black text-white"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                }`}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 transition-all ${isActive
+                  ? "bg-black text-white"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
+                  }`}
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -267,17 +297,34 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div className="min-h-[500px] rounded-2xl border border-gray-100 bg-white">
-          {/* 内容网格区域 */}
           <div className="p-6">
-            <div className="py-20 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                <Bookmark className="text-gray-400" size={20} />
+            {isLoadingCollectedTopics && collectedPosts.length === 0 ? (
+              <div className="flex items-center justify-center py-20">
+                <LoadingSpinner size="lg" />
               </div>
-              <h3 className="mb-2 font-medium text-gray-900 text-lg">
-                还没有收藏的内容
-              </h3>
-              <p className="mb-6 text-gray-500 text-sm">收藏你感兴趣的内容</p>
-            </div>
+            ) : collectedPosts.length === 0 ? (
+              <div className="py-20 text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                  <Bookmark className="text-gray-400" size={20} />
+                </div>
+                <h3 className="mb-2 font-medium text-gray-900 text-lg">
+                  还没有收藏的内容
+                </h3>
+                <p className="mb-6 text-gray-500 text-sm">
+                  收藏你感兴趣的内容
+                </p>
+              </div>
+            ) : (
+              <SimpleInfiniteScroll
+                hasMore={hasNextCollectedPage}
+                isLoading={isFetchingNextCollectedPage}
+                onLike={handleLike}
+                onLoadMore={handleLoadMore}
+                onPostClick={handlePostClick}
+                onSave={handleSave}
+                posts={collectedPosts}
+              />
+            )}
           </div>
         </div>
       )}

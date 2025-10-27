@@ -78,6 +78,11 @@ export interface CreateLikeDto {
   topicId: number;
 }
 
+// 收藏相关类型
+export interface CreateCollectionDto {
+  topicId: number;
+}
+
 // 用户类型
 export interface ApiUser {
   id: number;
@@ -367,6 +372,9 @@ class ApiService {
     }
   ): Promise<ApiResponse<PaginatedResponse<ApiTopic>>> {
     const searchParams = new URLSearchParams();
+    
+    // 添加 userId 参数
+    searchParams.append('userId', String(userId));
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -377,7 +385,7 @@ class ApiService {
     }
 
     const queryString = searchParams.toString();
-    const endpoint = `/api/like/findByuserId?userId=${userId}${queryString ? `&${queryString}` : ""}`;
+    const endpoint = `/api/like?${queryString}`;
 
     return this.request<PaginatedResponse<ApiTopic>>(endpoint);
   }
@@ -477,6 +485,72 @@ class ApiService {
       method: "PUT",
       body: JSON.stringify({ avatarFileMd5 }),
     });
+  }
+
+  // 收藏话题
+  async collectTopic(topicId: number): Promise<ApiResponse<any>> {
+    return this.request("/api/collection", {
+      method: "POST",
+      body: JSON.stringify({ topicId }),
+    });
+  }
+
+  // 取消收藏
+  async uncollectTopic(topicId: number): Promise<ApiResponse<any>> {
+    return this.request("/api/collection", {
+      method: "DELETE",
+      body: JSON.stringify({ topicId }),
+    });
+  }
+
+  // 获取收藏列表
+  async getCollections(params?: {
+    page?: number;
+    size?: number;
+    topicId?: number;
+    userId?: number;
+  }): Promise<ApiResponse<PaginatedResponse<any>>> {
+    const searchParams = new URLSearchParams();
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/collection${queryString ? `?${queryString}` : ""}`;
+
+    return this.request<PaginatedResponse<any>>(endpoint);
+  }
+
+  // 获取用户收藏的话题列表
+  async getUserCollectedTopics(
+    userId: number,
+    params?: {
+      page?: number;
+      size?: number;
+    }
+  ): Promise<ApiResponse<PaginatedResponse<ApiTopic>>> {
+    const searchParams = new URLSearchParams();
+
+    // 添加 userId 参数
+    searchParams.append("userId", String(userId));
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/collection?${queryString}`;
+
+    return this.request<PaginatedResponse<ApiTopic>>(endpoint);
   }
 }
 

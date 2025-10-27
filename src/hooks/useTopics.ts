@@ -86,7 +86,7 @@ export const useInfiniteTopics = (params?: {
             response.result.meta.current_page < response.result.meta.totalPages,
         };
       }
-      throw new Error(response.message || "获取话题列表失败");
+      throw new Error(response.msg || "获取话题列表失败");
     },
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined,
@@ -121,7 +121,7 @@ export const useTopics = (params?: {
           totalPages: response.result.meta.totalPages,
         };
       }
-      throw new Error(response.message || "获取话题列表失败");
+      throw new Error(response.msg || "获取话题列表失败");
     },
     staleTime: 10 * 60 * 1000, // 10分钟内数据被认为是新鲜的
     gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
@@ -278,6 +278,121 @@ export const useInfiniteLikedTopics = (userId?: number) => {
         };
       }
       throw new Error(response.msg || "获取喜欢列表失败");
+    },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.page + 1 : undefined,
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
+};
+
+// 收藏话题的hook
+export const useCollectTopic = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      topicId,
+      isCollected,
+    }: {
+      topicId: number;
+      isCollected: boolean;
+    }) => {
+      if (isCollected) {
+        return await apiService.uncollectTopic(topicId);
+      }
+      return await apiService.collectTopic(topicId);
+    },
+    onSuccess: (_data, variables) => {
+      // 更新缓存中的话题数据
+      queryClient.setQueryData(["topics"], (oldData: any) => {
+        if (!oldData) {
+          return oldData;
+        }
+
+        return {
+          ...oldData,
+          items: oldData.items.map((post: Post) => {
+            if (post.id === String(variables.topicId)) {
+              return {
+                ...post,
+                isSaved: !variables.isCollected,
+                saves: variables.isCollected ? post.saves - 1 : post.saves + 1,
+              };
+            }
+            return post;
+          }),
+        };
+      });
+
+      // 也更新无限查询的缓存
+      queryClient.setQueryData(["topics", "infinite"], (oldData: any) => {
+        if (!oldData) {
+          return oldData;
+        }
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            items: page.items.map((post: Post) => {
+              if (post.id === String(variables.topicId)) {
+                return {
+                  ...post,
+                  isSaved: !variables.isCollected,
+                  saves: variables.isCollected ? post.saves - 1 : post.saves + 1,
+                };
+              }
+              return post;
+            }),
+          })),
+        };
+      });
+
+      // 使收藏列表缓存失效
+      queryClient.invalidateQueries({ queryKey: ["collectedTopics"] });
+    },
+    onError: (_error) => {},
+  });
+};
+
+// 获取用户收藏的话题列表（无限滚动版本）
+export const useInfiniteCollectedTopics = (userId?: number) => {
+  return useInfiniteQuery({
+    queryKey: ["collectedTopics", "infinite", userId],
+    initialPageParam: 1,
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!userId) {
+        return {
+          items: [],
+          total: 0,
+          page: 1,
+          size: 20,
+          totalPages: 0,
+          hasNextPage: false,
+        };
+      }
+
+      const response = await apiService.getUserCollectedTopics(userId, {
+        page: pageParam,
+        size: 20,
+      });
+
+      if (response.code === 200 && response.result) {
+        return {
+          items: response.result.data.map(transformApiTopicToPost),
+          total: response.result.meta.totalElements,
+          page: response.result.meta.current_page,
+          size: response.result.meta.size,
+          totalPages: response.result.meta.totalPages,
+          hasNextPage:
+            response.result.meta.current_page < response.result.meta.totalPages,
+        };
+      }
+      throw new Error(response.msg || "获取收藏列表失败");
     },
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined,
