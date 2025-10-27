@@ -403,3 +403,36 @@ export const useInfiniteCollectedTopics = (userId?: number) => {
     refetchOnWindowFocus: false,
   });
 };
+
+// 更新话题的hook
+export const useUpdateTopic = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: {
+        title?: string;
+        content?: string;
+        fileIds?: (number | string)[];
+        tagIds?: (number | string)[];
+      };
+    }) => {
+      const response = await apiService.updateTopic(id, data);
+      if (response.code === 200 && response.result) {
+        return transformApiTopicToPost(response.result);
+      }
+      throw new Error(response.msg || "更新话题失败");
+    },
+    onSuccess: (_data, variables) => {
+      // 刷新话题详情缓存
+      queryClient.invalidateQueries({ queryKey: ["topic", variables.id] });
+      // 刷新话题列表缓存
+      queryClient.invalidateQueries({ queryKey: ["topics"] });
+    },
+    onError: (_error) => {},
+  });
+};

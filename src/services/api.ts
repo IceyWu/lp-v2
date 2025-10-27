@@ -235,6 +235,22 @@ class ApiService {
     });
   }
 
+  // 更新话题
+  async updateTopic(
+    id: number,
+    data: {
+      title?: string;
+      content?: string;
+      fileIds?: (number | string)[];
+      tagIds?: (number | string)[];
+    }
+  ): Promise<ApiResponse<ApiTopic>> {
+    return this.request<ApiTopic>(`/api/topic/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
   // 点赞话题
   async likeTopic(topicId: number): Promise<ApiResponse<any>> {
     return this.request("/api/like", {

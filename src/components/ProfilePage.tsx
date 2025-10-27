@@ -9,6 +9,9 @@ import {
   useLikeTopic,
 } from "../hooks/useTopics";
 import { useUserStats } from "../hooks/useUserStats";
+import { apiService } from "../services/api";
+import { useQueryClient } from "@tanstack/react-query";
+import CreatePostModal from "./CreatePostModal";
 import LoadingSpinner from "./LoadingSpinner";
 import ProfileEditDialog from "./ProfileEditDialog";
 import SimpleImageDetail from "./SimpleImageDetail";
@@ -20,6 +23,13 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("posts");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
+  const [editingTopicId, setEditingTopicId] = useState<number | null>(null);
+  const [editingTopicData, setEditingTopicData] = useState<{
+    title: string;
+    content: string;
+    images?: any[];
+  } | null>(null);
+  const queryClient = useQueryClient();
 
   // 获取用户动态数据
   const {
@@ -380,9 +390,92 @@ export default function ProfilePage() {
         <SimpleImageDetail
           isOpen={!!selectedTopicId}
           onClose={() => setSelectedTopicId(null)}
+          onEdit={async (topicId) => {
+            try {
+              // 加载话题数据
+              const response = await apiService.getTopicDetail(topicId);
+              if (response.code === 200 && response.result) {
+                const topic = response.result;
+                
+                // 提取图片列表（从 fileList 字段）
+                const images = topic.fileList?.map((file: any) => ({
+                  id: file.id,
+                  url: file.url,
+                  width: 0,
+                  height: 0,
+                  blurhash: file.blurhash || "",
+                  type: file.type || "image/jpeg",
+                  name: file.name || "",
+                  videoSrc: file.videoSrc || null, // 实况图片的视频源
+                })) || [];
+                
+                setEditingTopicId(topicId);
+                setEditingTopicData({
+                  title: topic.title || "",
+                  content: topic.content || "",
+                  images: images,
+                });
+                setSelectedTopicId(null);
+              }
+            } catch (error) {
+              console.error("加载话题失败:", error);
+            }
+          }}
           onLike={handleLike}
           onSave={handleSave}
           topicId={selectedTopicId}
+        />
+      )}
+
+      {/* 编辑对话框 */}
+      {editingTopicId && editingTopicData && (
+        <CreatePostModal
+          editMode
+          initialData={editingTopicData}
+          isOpen={!!editingTopicId}
+          onClose={() => {
+            setEditingTopicId(null);
+            setEditingTopicData(null);
+          }}
+          onSubmit={async (postData: any) => {
+            try {
+              // 使用 compareObjects 只传递变动的字段
+              const { compareObjects } = await import("@iceywu/utils");
+              
+              // 构建原始数据（用于对比）
+              const originalData = {
+                title: editingTopicData.title,
+                content: editingTopicData.content,
+                fileIds: editingTopicData.images?.map((img) => img.id) || [],
+              };
+              
+              // 对比变化
+              const changes = compareObjects(originalData, postData);
+              
+              // 如果没有变化，直接关闭
+              if (Object.keys(changes).length === 0) {
+                console.log("没有变化，无需更新");
+                return;
+              }
+              
+              console.log("🔄-----变更字段-----", changes);
+              
+              const response = await apiService.updateTopic(editingTopicId, changes);
+
+              if (response.code === 200) {
+                // 刷新相关缓存
+                queryClient.invalidateQueries({ queryKey: ["topic", editingTopicId] });
+                queryClient.invalidateQueries({ queryKey: ["topics"] });
+                fetchNextPage();
+              } else {
+                alert(response.msg || "更新失败");
+              }
+            } catch (error: any) {
+              console.error("更新话题失败:", error);
+              alert(error.message || "更新失败，请重试");
+            }
+          }}
+          topicId={editingTopicId}
         />
       )}
     </div>

@@ -30,7 +30,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { useFileUpload } from "../hooks/useFileUpload";
 import { sanitizeHtml } from "../lib/sanitize";
 import { serializeToHtml } from "../lib/serializeHtml";
-import type { Post } from "../types";
+import type { Post, PostImage } from "../types";
 import type { FileItem } from "../types/upload";
 import { detectLocalLivePhotos } from "../utils/upload/fileProcessor";
 import { PlateEditor } from "./PlateEditor";
@@ -51,6 +51,13 @@ type CreatePostModalProps = {
       | "createdAt"
     >
   ) => void;
+  editMode?: boolean;
+  topicId?: number; // 编辑模式下的话题 ID（暂未使用，保留以备后用）
+  initialData?: {
+    title: string;
+    content: string;
+    images?: PostImage[]; // 已有的图片列表
+  };
 };
 
 // 初始空值
@@ -60,6 +67,106 @@ const initialValue: Value = [
     children: [{ text: "7777" }],
   },
 ];
+
+// 已有图片项组件（编辑模式）
+interface ExistingImageItemProps {
+  image: PostImage;
+  id: string;
+  onRemove: () => void;
+}
+
+function SortableExistingImageItem({
+  image,
+  id,
+  onRemove,
+}: ExistingImageItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const livePhotoRef = useRef<HTMLDivElement>(null);
+  const isLivePhoto = !!(image as any).videoSrc;
+  const isVideo = image.type?.startsWith("video/");
+
+  // 初始化 Live Photo
+  React.useEffect(() => {
+    if (isLivePhoto && livePhotoRef.current) {
+      try {
+        new LivePhotoViewer({
+          container: livePhotoRef.current,
+          photoSrc: image.url,
+          videoSrc: (image as any).videoSrc,
+          height: "100%",
+          width: "100%",
+          imageCustomization: {
+            styles: {
+              objectFit: "cover",
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Live Photo 初始化失败:", error);
+      }
+    }
+  }, [isLivePhoto, image.url, image]);
+
+  return (
+    <div
+      className="group relative aspect-square overflow-hidden rounded-lg bg-gray-100"
+      ref={setNodeRef}
+      style={style}
+    >
+      {isLivePhoto ? (
+        // Live Photo 渲染
+        <div className="h-full w-full" ref={livePhotoRef} />
+      ) : isVideo ? (
+        <video className="h-full w-full object-cover" src={image.url} />
+      ) : (
+        <img
+          alt={image.name}
+          className="h-full w-full object-cover"
+          src={image.url}
+        />
+      )}
+
+      {/* 拖拽手柄 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 cursor-grab rounded bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+      >
+        <GripVertical className="text-white" size={16} />
+      </div>
+
+      {/* 删除按钮 */}
+      <button
+        className="absolute top-2 right-2 rounded-full bg-black/50 p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/70"
+        onClick={onRemove}
+        type="button"
+      >
+        <X className="text-white" size={16} />
+      </button>
+
+      {/* 视频标识 */}
+      {isVideo && !isLivePhoto && (
+        <div className="absolute bottom-2 right-2 rounded bg-black/50 px-2 py-1">
+          <Video className="text-white" size={12} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // 媒体文件项组件（本地预览）
 interface MediaItemProps {
@@ -175,17 +282,56 @@ export default function CreatePostModal({
   isOpen,
   onClose,
   onSubmit,
+  editMode = false,
+  topicId,
+  initialData,
 }: CreatePostModalProps) {
-  const [title, setTitle] = useState("test title");
+  const [title, setTitle] = useState("");
   const [content, setContent] = useState<Value>(initialValue);
   const [tags, setTags] = useState("");
   const [location, setLocation] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // 选中的文件（未上传）
+  const [existingImages, setExistingImages] = useState<PostImage[]>([]); // 编辑模式下已有的图片
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 使用文件上传 Hook
   const { uploadState, uploadMultipleFiles } = useFileUpload();
+
+  // 编辑模式：加载初始数据
+  React.useEffect(() => {
+    if (isOpen && editMode && initialData) {
+      setTitle(initialData.title || "");
+
+      // 将 HTML 内容转换回 Plate Value
+      // 简单处理：如果是纯文本就直接设置，否则保持初始值
+      if (initialData.content) {
+        // TODO: 如果需要完整的 HTML 解析，需要实现 deserializeHtml 函数
+        // 目前简单处理为纯文本
+        setContent([
+          {
+            type: "p",
+            children: [{ text: initialData.content.replace(/<[^>]*>/g, '') }],
+          },
+        ]);
+      }
+      
+      // 回显已有图片
+      if (initialData.images && initialData.images.length > 0) {
+        setExistingImages(initialData.images);
+      } else {
+        setExistingImages([]);
+      }
+    } else if (isOpen && !editMode) {
+      // 创建模式：重置表单
+      setTitle("");
+      setContent(initialValue);
+      setTags("");
+      setLocation("");
+      setSelectedFiles([]);
+      setExistingImages([]);
+    }
+  }, [isOpen, editMode, initialData]);
 
   // 拖拽排序传感器
   const sensors = useSensors(
@@ -237,7 +383,21 @@ export default function CreatePostModal({
     return null;
   }
 
-  // 处理拖拽排序
+  // 处理已有图片拖拽排序
+  const handleExistingImageDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      // 从 ID 中提取索引
+      const oldIndex = Number(String(active.id).replace("existing-", ""));
+      const newIndex = Number(String(over.id).replace("existing-", ""));
+
+      const newImages = arrayMove(existingImages, oldIndex, newIndex);
+      setExistingImages(newImages);
+    }
+  };
+
+  // 处理新上传文件拖拽排序
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -348,7 +508,7 @@ export default function CreatePostModal({
     }
 
     try {
-      // 1. 先上传文件（如果有）
+      // 1. 先上传文件（如果有新文件）
       let uploadedFiles: FileItem[] = [];
       if (selectedFiles.length > 0) {
         const rawUploadedFiles = await uploadMultipleFiles(selectedFiles, {
@@ -363,6 +523,7 @@ export default function CreatePostModal({
         uploadedFiles = await processLivePhotoFiles(rawUploadedFiles);
         console.log("🌈-----uploadedFiles-----", uploadedFiles);
       }
+
       // 3. 将 Plate Value 转换为 HTML 字符串
       const htmlContent = serializeToHtml(content);
 
@@ -370,31 +531,46 @@ export default function CreatePostModal({
       const sanitizedContent = sanitizeHtml(htmlContent);
 
       // 5. 构建提交数据
-      const postData = {
+      const postData: any = {
         title,
         content: sanitizedContent,
-        tagIds: [1],
-        // location: location || undefined,
-        fileIds: uploadedFiles.map((file) => file.id).reverse(),
       };
 
+      // 编辑模式下合并已有图片和新上传的图片
+      if (editMode) {
+        // 保留已有图片的 ID
+        const existingFileIds = existingImages.map((img) => img.id);
+        // 添加新上传的图片 ID
+        const newFileIds = uploadedFiles.map((file) => file.id);
+        // 合并（已有图片在前，新图片在后）
+        if (existingFileIds.length > 0 || newFileIds.length > 0) {
+          postData.fileIds = [...existingFileIds, ...newFileIds];
+        }
+      } else {
+        // 创建模式
+        postData.tagIds = [1];
+        postData.fileIds = uploadedFiles.map((file) => file.id).reverse();
+      }
+
       // 6. 实际提交
-      console.log("🍪-----postData-----", postData);
+      console.log(editMode ? "🔄-----更新数据-----" : "🍪-----创建数据-----", postData);
       onSubmit(postData);
 
-      // 7. 重置表单
-      setTitle("");
-      setContent(initialValue);
-      setTags("");
-      setLocation("");
-      setSelectedFiles([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      // 7. 重置表单（仅在创建模式）
+      if (!editMode) {
+        setTitle("");
+        setContent(initialValue);
+        setTags("");
+        setLocation("");
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
       }
       onClose();
     } catch (error) {
-      console.error("提交失败:", error);
-      alert("提交失败，请重试");
+      console.error(editMode ? "更新失败:" : "提交失败:", error);
+      alert(editMode ? "更新失败，请重试" : "提交失败，请重试");
     }
   };
 
@@ -405,8 +581,12 @@ export default function CreatePostModal({
         <div className="relative flex-shrink-0 p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-black text-xl">创建新动态</h2>
-              <p className="mt-1 text-gray-500 text-sm">分享你的精彩瞬间</p>
+              <h2 className="font-semibold text-black text-xl">
+                {editMode ? "编辑动态" : "创建新动态"}
+              </h2>
+              <p className="mt-1 text-gray-500 text-sm">
+                {editMode ? "修改你的动态内容" : "分享你的精彩瞬间"}
+              </p>
             </div>
             <button
               className="rounded-full p-2 transition-all duration-200 hover:bg-gray-100"
@@ -466,11 +646,10 @@ export default function CreatePostModal({
                 图片/视频（可选）
               </label>
               <div
-                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${
-                  isDragging
+                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${isDragging
                     ? "border-black bg-gray-100"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
-                } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
+                  } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
@@ -527,7 +706,38 @@ export default function CreatePostModal({
                 </div>
               )}
 
-              {/* 媒体预览网格 */}
+              {/* 已有图片预览（编辑模式，支持拖拽排序） */}
+              {editMode && existingImages.length > 0 && (
+                <div className="mt-3 max-h-[300px] overflow-y-auto rounded-lg border border-gray-200 p-2">
+                  <DndContext
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleExistingImageDragEnd}
+                    sensors={sensors}
+                  >
+                    <SortableContext
+                      items={existingImages.map((_, idx) => `existing-${idx}`)}
+                      strategy={rectSortingStrategy}
+                    >
+                      <div className="grid grid-cols-3 gap-2">
+                        {existingImages.map((image, index) => (
+                          <SortableExistingImageItem
+                            id={`existing-${index}`}
+                            image={image}
+                            key={`existing-${index}`}
+                            onRemove={() => {
+                              setExistingImages((prev) =>
+                                prev.filter((_, i) => i !== index)
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
+
+              {/* 新上传文件预览网格 */}
               {selectedFiles.length > 0 && (
                 <div className="mt-3 max-h-[300px] overflow-y-auto rounded-lg border border-gray-200 p-2">
                   <DndContext
@@ -605,7 +815,11 @@ export default function CreatePostModal({
               disabled={uploadState.isUploading}
               type="submit"
             >
-              {uploadState.isUploading ? "上传中..." : "发布动态"}
+              {uploadState.isUploading
+                ? "上传中..."
+                : editMode
+                  ? "保存修改"
+                  : "发布动态"}
             </button>
           </div>
         </form>
