@@ -57,6 +57,11 @@ type CreatePostModalProps = {
     title: string;
     content: string;
     images?: PostImage[]; // 已有的图片列表
+    topicTags?: Array<{
+      tag: {
+        title: string;
+      };
+    }>; // API 返回的标签结构
   };
 };
 
@@ -321,6 +326,14 @@ export default function CreatePostModal({
         setExistingImages(initialData.images);
       } else {
         setExistingImages([]);
+      }
+
+      // 回显标签（从 topicTags 中提取）
+      if (initialData.topicTags && initialData.topicTags.length > 0) {
+        const tagNames = initialData.topicTags.map((tt) => tt.tag.title);
+        setTags(tagNames.join(", "));
+      } else {
+        setTags("");
       }
     } else if (isOpen && !editMode) {
       // 创建模式：重置表单

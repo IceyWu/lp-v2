@@ -34,6 +34,11 @@ export default function TopicsListPage({
     title: string;
     content: string;
     images?: any[];
+    topicTags?: Array<{
+      tag: {
+        title: string;
+      };
+    }>;
   } | null>(null);
   const [_isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -202,6 +207,7 @@ export default function TopicsListPage({
                   title: topic.title || "",
                   content: topic.content || "",
                   images: images,
+                  topicTags: topic.topicTags || [], // 添加标签数据
                 });
                 setSelectedTopicId(null);
               }
@@ -261,7 +267,7 @@ export default function TopicsListPage({
                 queryClient.invalidateQueries({ queryKey: ["topics"] });
                 refetch();
               } else {
-                alert(response.msg || "更新失败");
+                alert(response.message || "更新失败");
               }
             } catch (error: any) {
               console.error("更新话题失败:", error);

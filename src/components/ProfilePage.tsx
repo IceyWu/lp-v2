@@ -28,6 +28,11 @@ export default function ProfilePage() {
     title: string;
     content: string;
     images?: any[];
+    topicTags?: Array<{
+      tag: {
+        title: string;
+      };
+    }>;
   } | null>(null);
   const queryClient = useQueryClient();
 
@@ -413,6 +418,7 @@ export default function ProfilePage() {
                   title: topic.title || "",
                   content: topic.content || "",
                   images: images,
+                  topicTags: topic.topicTags || [], // 添加标签数据
                 });
                 setSelectedTopicId(null);
               }
@@ -472,7 +478,7 @@ export default function ProfilePage() {
                 queryClient.invalidateQueries({ queryKey: ["topics"] });
                 fetchNextPage();
               } else {
-                alert(response.msg || "更新失败");
+                alert(response.message || "更新失败");
               }
             } catch (error: any) {
               console.error("更新话题失败:", error);
