@@ -23,16 +23,16 @@ const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
     }));
 
   // 提取标签
-  const tags = apiTopic.TopicTag.map((topicTag) => topicTag.tag.title);
+  const tags = apiTopic.topicTags.map((topicTag) => topicTag.tag.title);
 
   // 构建用户头像URL
   const avatar =
-    apiTopic.User.avatarInfo?.url ||
+    apiTopic.user.avatarInfo?.url ||
     "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100";
 
   // 构建位置信息
-  const location = apiTopic.User.ipInfo
-    ? `${apiTopic.User.ipInfo.city}·${apiTopic.User.ipInfo.regionName}`
+  const location = apiTopic.user.ipInfo
+    ? `${apiTopic.user.ipInfo.city}·${apiTopic.user.ipInfo.regionName}`
     : undefined;
 
   return {
@@ -41,15 +41,15 @@ const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
     content: apiTopic.content,
     images,
     author: {
-      name: apiTopic.User.name,
+      name: apiTopic.user.name,
       avatar,
     },
     tags,
-    likes: 0, // TODO: 需要从点赞接口获取
-    comments: 0, // TODO: 需要从评论接口获取
-    saves: 0, // TODO: 需要从收藏接口获取
-    isLiked: false, // TODO: 需要根据用户状态判断
-    isSaved: false, // TODO: 需要根据用户状态判断
+    likes: apiTopic.likesCount || 0,
+    comments: apiTopic.commentsCount || 0,
+    saves: apiTopic.collectionsCount || 0,
+    isLiked: apiTopic.isLiked || false,
+    isSaved: apiTopic.isCollected || false,
     createdAt: apiTopic.createdAt,
     location,
   };
@@ -77,16 +77,17 @@ export const useInfiniteTopics = (params?: {
 
       if (response.code === 200 && response.result) {
         return {
-          items: response.result.data.map(transformApiTopicToPost),
-          total: response.result.meta.totalElements,
-          page: response.result.meta.current_page,
-          size: response.result.meta.size,
-          totalPages: response.result.meta.totalPages,
+          items: response.result.list.map(transformApiTopicToPost),
+          total: response.result.pagination.total,
+          page: response.result.pagination.page,
+          size: response.result.pagination.pageSize,
+          totalPages: response.result.pagination.totalPages,
           hasNextPage:
-            response.result.meta.current_page < response.result.meta.totalPages,
+            response.result.pagination.page <
+            response.result.pagination.totalPages,
         };
       }
-      throw new Error(response.msg || "获取话题列表失败");
+      throw new Error(response.message || "获取话题列表失败");
     },
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined,
@@ -114,14 +115,14 @@ export const useTopics = (params?: {
       const response = await apiService.getTopics(params);
       if (response.code === 200 && response.result) {
         return {
-          items: response.result.data.map(transformApiTopicToPost),
-          total: response.result.meta.totalElements,
-          page: response.result.meta.current_page,
-          size: response.result.meta.size,
-          totalPages: response.result.meta.totalPages,
+          items: response.result.list.map(transformApiTopicToPost),
+          total: response.result.pagination.total,
+          page: response.result.pagination.page,
+          size: response.result.pagination.pageSize,
+          totalPages: response.result.pagination.totalPages,
         };
       }
-      throw new Error(response.msg || "获取话题列表失败");
+      throw new Error(response.message || "获取话题列表失败");
     },
     staleTime: 10 * 60 * 1000, // 10分钟内数据被认为是新鲜的
     gcTime: 30 * 60 * 1000, // 30分钟垃圾回收
@@ -215,7 +216,7 @@ export const useCreateTopic = () => {
       if (response.code === 200 && response.result) {
         return transformApiTopicToPost(response.result);
       }
-      throw new Error(response.msg || "创建话题失败");
+      throw new Error(response.message || "创建话题失败");
     },
     onSuccess: (newPost) => {
       // 将新话题添加到普通查询缓存的开头
@@ -268,16 +269,17 @@ export const useInfiniteLikedTopics = (userId?: number) => {
 
       if (response.code === 200 && response.result) {
         return {
-          items: response.result.data.map(transformApiTopicToPost),
-          total: response.result.meta.totalElements,
-          page: response.result.meta.current_page,
-          size: response.result.meta.size,
-          totalPages: response.result.meta.totalPages,
+          items: response.result.list.map(transformApiTopicToPost),
+          total: response.result.pagination.total,
+          page: response.result.pagination.page,
+          size: response.result.pagination.pageSize,
+          totalPages: response.result.pagination.totalPages,
           hasNextPage:
-            response.result.meta.current_page < response.result.meta.totalPages,
+            response.result.pagination.page <
+            response.result.pagination.totalPages,
         };
       }
-      throw new Error(response.msg || "获取喜欢列表失败");
+      throw new Error(response.message || "获取喜欢列表失败");
     },
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined,
@@ -343,7 +345,9 @@ export const useCollectTopic = () => {
                 return {
                   ...post,
                   isSaved: !variables.isCollected,
-                  saves: variables.isCollected ? post.saves - 1 : post.saves + 1,
+                  saves: variables.isCollected
+                    ? post.saves - 1
+                    : post.saves + 1,
                 };
               }
               return post;
@@ -383,16 +387,17 @@ export const useInfiniteCollectedTopics = (userId?: number) => {
 
       if (response.code === 200 && response.result) {
         return {
-          items: response.result.data.map(transformApiTopicToPost),
-          total: response.result.meta.totalElements,
-          page: response.result.meta.current_page,
-          size: response.result.meta.size,
-          totalPages: response.result.meta.totalPages,
+          items: response.result.list.map(transformApiTopicToPost),
+          total: response.result.pagination.total,
+          page: response.result.pagination.page,
+          size: response.result.pagination.pageSize,
+          totalPages: response.result.pagination.totalPages,
           hasNextPage:
-            response.result.meta.current_page < response.result.meta.totalPages,
+            response.result.pagination.page <
+            response.result.pagination.totalPages,
         };
       }
-      throw new Error(response.msg || "获取收藏列表失败");
+      throw new Error(response.message || "获取收藏列表失败");
     },
     getNextPageParam: (lastPage) =>
       lastPage.hasNextPage ? lastPage.page + 1 : undefined,
@@ -425,7 +430,7 @@ export const useUpdateTopic = () => {
       if (response.code === 200 && response.result) {
         return transformApiTopicToPost(response.result);
       }
-      throw new Error(response.msg || "更新话题失败");
+      throw new Error(response.message || "更新话题失败");
     },
     onSuccess: (_data, variables) => {
       // 刷新话题详情缓存

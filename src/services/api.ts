@@ -5,18 +5,18 @@ const API_BASE_URL = config.API_BASE_URL;
 // API响应基础类型
 export interface ApiResponse<T = any> {
   code: number;
-  msg: string;
+  message: string;
   result: T;
   timestamp: number;
 }
 
 // 分页响应类型
 export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    current_page: number;
-    size: number;
-    totalElements: number;
+  list: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
     totalPages: number;
   };
 }
@@ -30,34 +30,46 @@ export interface ApiTopic {
   createdAt: string;
   updatedAt: string;
   userId: number;
-  fileId: number | null;
-  User: {
+  isPinned?: boolean;
+  user: {
     id: number;
     username: string | null;
     name: string;
     sex: number;
     avatarInfo?: {
       id: number;
-      name: string;
       url: string;
+      blurhash: string;
       width: number;
       height: number;
-      blurhash: string;
     } | null;
-    backgroundInfo?: any;
+    backgroundInfo?: {
+      id: number;
+      url: string;
+      blurhash: string;
+      width: number;
+      height: number;
+    } | null;
     ipInfo?: {
       country: string;
       regionName: string;
       city: string;
+      createdAt: string;
+      updatedAt: string;
     };
   };
-  TopicTag: Array<{
+  topicTags: Array<{
     tagId: number;
     topicId: number;
+    createdAt: string;
+    updatedAt: string;
     tag: {
       id: number;
       title: string;
       cover: string;
+      thumbnailPath?: string;
+      createdAt: string;
+      updatedAt: string;
     };
   }>;
   fileList: Array<{
@@ -69,8 +81,14 @@ export interface ApiTopic {
     height: number;
     blurhash: string;
     videoSrc?: string | null;
-    fromIaccount: boolean;
+    fromIphone: boolean;
   }>;
+  likesCount?: number;
+  collectionsCount?: number;
+  commentsCount?: number;
+  isLiked?: boolean;
+  isCollected?: boolean;
+  isCommented?: boolean;
 }
 
 // 点赞相关类型
@@ -174,7 +192,7 @@ class ApiService {
 
     // 检查API响应是否成功
     if (data.code !== 200) {
-      throw new Error(data.msg || "API请求失败");
+      throw new Error(data.message || "API请求失败");
     }
 
     return data;
@@ -228,6 +246,7 @@ class ApiService {
     location?: string;
     fileIds?: (number | string)[];
     tagIds?: (number | string)[];
+    extraData?: string;
   }): Promise<ApiResponse<ApiTopic>> {
     return this.request<ApiTopic>("/api/topic", {
       method: "POST",
@@ -243,6 +262,7 @@ class ApiService {
       content?: string;
       fileIds?: (number | string)[];
       tagIds?: (number | string)[];
+      extraData?: string;
     }
   ): Promise<ApiResponse<ApiTopic>> {
     return this.request<ApiTopic>(`/api/topic/${id}`, {
@@ -388,9 +408,9 @@ class ApiService {
     }
   ): Promise<ApiResponse<PaginatedResponse<ApiTopic>>> {
     const searchParams = new URLSearchParams();
-    
+
     // 添加 userId 参数
-    searchParams.append('userId', String(userId));
+    searchParams.append("userId", String(userId));
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -502,7 +522,7 @@ class ApiService {
     const data = await response.json();
 
     if (data.code !== 200) {
-      throw new Error(data.msg || "头像上传失败");
+      throw new Error(data.message || "头像上传失败");
     }
 
     return data;

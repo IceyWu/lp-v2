@@ -15,7 +15,7 @@ export const useUserStats = (userId?: number) => {
         return response.result;
       }
 
-      throw new Error(response.msg || "获取用户统计失败");
+      throw new Error(response.message || "获取用户统计失败");
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5分钟内数据被认为是新鲜的
