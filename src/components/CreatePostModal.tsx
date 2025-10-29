@@ -311,11 +311,11 @@ export default function CreatePostModal({
         setContent([
           {
             type: "p",
-            children: [{ text: initialData.content.replace(/<[^>]*>/g, '') }],
+            children: [{ text: initialData.content.replace(/<[^>]*>/g, "") }],
           },
         ]);
       }
-      
+
       // 回显已有图片
       if (initialData.images && initialData.images.length > 0) {
         setExistingImages(initialData.images);
@@ -536,6 +536,14 @@ export default function CreatePostModal({
         content: sanitizedContent,
       };
 
+      // 处理标签（将逗号分隔的字符串转换为数组）
+      if (tags && tags.trim()) {
+        postData.tags = tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0);
+      }
+
       // 编辑模式下合并已有图片和新上传的图片
       if (editMode) {
         // 保留已有图片的 ID
@@ -548,12 +556,14 @@ export default function CreatePostModal({
         }
       } else {
         // 创建模式
-        postData.tagIds = [1];
         postData.fileIds = uploadedFiles.map((file) => file.id).reverse();
       }
 
       // 6. 实际提交
-      console.log(editMode ? "🔄-----更新数据-----" : "🍪-----创建数据-----", postData);
+      console.log(
+        editMode ? "🔄-----更新数据-----" : "🍪-----创建数据-----",
+        postData
+      );
       onSubmit(postData);
 
       // 7. 重置表单（仅在创建模式）
@@ -646,10 +656,11 @@ export default function CreatePostModal({
                 图片/视频（可选）
               </label>
               <div
-                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${isDragging
+                className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                  isDragging
                     ? "border-black bg-gray-100"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50/50"
-                  } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
+                } ${uploadState.isUploading ? "pointer-events-none opacity-50" : ""}`}
                 onDragLeave={handleDragLeave}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}

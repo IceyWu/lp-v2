@@ -206,11 +206,10 @@ export const useCreateTopic = () => {
     mutationFn: async (data: {
       title: string;
       content: string;
-      images?: string[];
       tags?: string[];
-      location?: string;
       fileIds?: (number | string)[];
-      tagIds?: (number | string)[];
+      extraData?: string;
+      isPinned?: boolean;
     }) => {
       const response = await apiService.createTopic(data);
       if (response.code === 200 && response.result) {
@@ -422,8 +421,10 @@ export const useUpdateTopic = () => {
       data: {
         title?: string;
         content?: string;
+        tags?: string[];
         fileIds?: (number | string)[];
-        tagIds?: (number | string)[];
+        extraData?: string;
+        isPinned?: boolean;
       };
     }) => {
       const response = await apiService.updateTopic(id, data);

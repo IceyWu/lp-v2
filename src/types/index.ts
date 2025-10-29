@@ -14,7 +14,6 @@ export interface Post {
   content: string;
   images?: PostImage[];
   fileIds?: (number | string)[];
-  tagIds?: (number | string)[];
   author: {
     id?: number;
     name: string;

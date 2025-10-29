@@ -357,18 +357,10 @@ export default function SimpleImageDetail({
                         <Edit size={16} />
                       </Button>
                     )}
-                    <Button
-                      className="h-8 w-8"
-                      size="icon"
-                      variant="ghost"
-                    >
+                    <Button className="h-8 w-8" size="icon" variant="ghost">
                       <Share2 size={16} />
                     </Button>
-                    <Button
-                      className="h-8 w-8"
-                      size="icon"
-                      variant="ghost"
-                    >
+                    <Button className="h-8 w-8" size="icon" variant="ghost">
                       <MoreHorizontal size={16} />
                     </Button>
                   </div>

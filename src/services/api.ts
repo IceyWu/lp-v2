@@ -241,12 +241,10 @@ class ApiService {
   async createTopic(data: {
     title: string;
     content: string;
-    images?: string[];
     tags?: string[];
-    location?: string;
     fileIds?: (number | string)[];
-    tagIds?: (number | string)[];
     extraData?: string;
+    isPinned?: boolean;
   }): Promise<ApiResponse<ApiTopic>> {
     return this.request<ApiTopic>("/api/topic", {
       method: "POST",
@@ -260,9 +258,10 @@ class ApiService {
     data: {
       title?: string;
       content?: string;
+      tags?: string[];
       fileIds?: (number | string)[];
-      tagIds?: (number | string)[];
       extraData?: string;
+      isPinned?: boolean;
     }
   ): Promise<ApiResponse<ApiTopic>> {
     return this.request<ApiTopic>(`/api/topic/${id}`, {

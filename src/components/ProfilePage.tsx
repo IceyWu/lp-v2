@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Camera, Grid, Heart, Map, Settings } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useIsAuthenticated } from "../hooks/useAuth";
@@ -10,7 +11,6 @@ import {
 } from "../hooks/useTopics";
 import { useUserStats } from "../hooks/useUserStats";
 import { apiService } from "../services/api";
-import { useQueryClient } from "@tanstack/react-query";
 import CreatePostModal from "./CreatePostModal";
 import LoadingSpinner from "./LoadingSpinner";
 import ProfileEditDialog from "./ProfileEditDialog";
@@ -357,9 +357,7 @@ export default function ProfilePage() {
                 <h3 className="mb-2 font-medium text-gray-900 text-lg">
                   还没有收藏的内容
                 </h3>
-                <p className="mb-6 text-gray-500 text-sm">
-                  收藏你感兴趣的内容
-                </p>
+                <p className="mb-6 text-gray-500 text-sm">收藏你感兴趣的内容</p>
               </div>
             ) : (
               <SimpleInfiniteScroll
@@ -396,19 +394,20 @@ export default function ProfilePage() {
               const response = await apiService.getTopicDetail(topicId);
               if (response.code === 200 && response.result) {
                 const topic = response.result;
-                
+
                 // 提取图片列表（从 fileList 字段）
-                const images = topic.fileList?.map((file: any) => ({
-                  id: file.id,
-                  url: file.url,
-                  width: 0,
-                  height: 0,
-                  blurhash: file.blurhash || "",
-                  type: file.type || "image/jpeg",
-                  name: file.name || "",
-                  videoSrc: file.videoSrc || null, // 实况图片的视频源
-                })) || [];
-                
+                const images =
+                  topic.fileList?.map((file: any) => ({
+                    id: file.id,
+                    url: file.url,
+                    width: 0,
+                    height: 0,
+                    blurhash: file.blurhash || "",
+                    type: file.type || "image/jpeg",
+                    name: file.name || "",
+                    videoSrc: file.videoSrc || null, // 实况图片的视频源
+                  })) || [];
+
                 setEditingTopicId(topicId);
                 setEditingTopicData({
                   title: topic.title || "",
@@ -441,30 +440,35 @@ export default function ProfilePage() {
             try {
               // 使用 compareObjects 只传递变动的字段
               const { compareObjects } = await import("@iceywu/utils");
-              
+
               // 构建原始数据（用于对比）
               const originalData = {
                 title: editingTopicData.title,
                 content: editingTopicData.content,
                 fileIds: editingTopicData.images?.map((img) => img.id) || [],
               };
-              
+
               // 对比变化
               const changes = compareObjects(originalData, postData);
-              
+
               // 如果没有变化，直接关闭
               if (Object.keys(changes).length === 0) {
                 console.log("没有变化，无需更新");
                 return;
               }
-              
+
               console.log("🔄-----变更字段-----", changes);
-              
-              const response = await apiService.updateTopic(editingTopicId, changes);
+
+              const response = await apiService.updateTopic(
+                editingTopicId,
+                changes
+              );
 
               if (response.code === 200) {
                 // 刷新相关缓存
-                queryClient.invalidateQueries({ queryKey: ["topic", editingTopicId] });
+                queryClient.invalidateQueries({
+                  queryKey: ["topic", editingTopicId],
+                });
                 queryClient.invalidateQueries({ queryKey: ["topics"] });
                 fetchNextPage();
               } else {

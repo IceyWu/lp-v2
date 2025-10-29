@@ -50,7 +50,7 @@ export default function PageLayout({
       content: postData.content,
       // images: postData.images.map((img) => img.url),
       fileIds: postData.fileIds,
-      tagIds: postData.tagIds,
+      tags: postData.tags,
       // location: postData.location,
     });
   };
