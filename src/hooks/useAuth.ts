@@ -53,20 +53,46 @@ export const useLogin = () => {
   });
 };
 
+// 验证码登录hook
+export const useLoginByCode = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ account, code }: { account: string; code: string }) =>
+      await apiService.loginByCode(account, code),
+    onSuccess: (data) => {
+      if (data.code === 200 && data.result) {
+        // 登录成功后，刷新当前用户信息
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+        queryClient.invalidateQueries({ queryKey: ["topics"] });
+      }
+    },
+  });
+};
+
+// 重置密码hook
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: async (data: {
+      account: string;
+      code: string;
+      password: string;
+      password_confirm: string;
+    }) => await apiService.resetPassword(data),
+  });
+};
+
 // 注册hook
 export const useRegister = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      account,
-      password,
-      name,
-    }: {
-      account: string;
+    mutationFn: async (data: {
+      email: string;
       password: string;
-      name: string;
-    }) => await apiService.register(account, password, name),
+      password_confirm: string;
+      code: string;
+    }) => await apiService.register(data),
     onSuccess: (data) => {
       if (data.code === 200 && data.result) {
         // 注册成功后，刷新当前用户信息

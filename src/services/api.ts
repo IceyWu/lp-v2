@@ -178,21 +178,25 @@ class ApiService {
       headers,
     });
 
+    const data = await response.json();
+
     // 处理401未授权错误
     if (response.status === 401) {
       this.clearToken();
       throw new Error("登录已过期，请重新登录");
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // 检查API响应是否成功
-    if (data.code !== 200) {
-      throw new Error(data.message || "API请求失败");
+    // 处理错误响应
+    if (!response.ok || data.code !== 200) {
+      // 处理字段验证错误 (msg是数组)
+      if (Array.isArray(data.msg) && data.msg.length > 0) {
+        const errorMessages = data.msg
+          .map((err: any) => err.message)
+          .join(", ");
+        throw new Error(errorMessages);
+      }
+      // 处理普通错误消息
+      throw new Error(data.msg || data.message || "操作失败，请重试");
     }
 
     return data;
@@ -358,15 +362,49 @@ class ApiService {
     return response;
   }
 
-  // 注册
-  async register(
+  // 验证码登录
+  async loginByCode(
     account: string,
-    password: string,
-    name: string
+    code: string
   ): Promise<ApiResponse<LoginResponse>> {
+    const response = await this.request<LoginResponse>(
+      "/api/auth/loginByCode",
+      {
+        method: "POST",
+        body: JSON.stringify({ account, code }),
+      }
+    );
+
+    if (response.code === 200 && response.result?.token?.access_token) {
+      this.setToken(response.result.token.access_token);
+    }
+
+    return response;
+  }
+
+  // 重置密码
+  async resetPassword(data: {
+    account: string;
+    code: string;
+    password: string;
+    password_confirm: string;
+  }): Promise<ApiResponse<any>> {
+    return this.request("/api/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // 注册
+  async register(data: {
+    email: string;
+    password: string;
+    password_confirm: string;
+    code: string;
+  }): Promise<ApiResponse<LoginResponse>> {
     const response = await this.request<LoginResponse>("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ account, password, name }),
+      body: JSON.stringify(data),
     });
 
     if (response.code === 200 && response.result?.token?.access_token) {
@@ -599,6 +637,50 @@ class ApiService {
     const endpoint = `/api/collection?${queryString}`;
 
     return this.request<PaginatedResponse<ApiTopic>>(endpoint);
+  }
+
+  // 获取文件详情
+  async getFileDetail(fileId: number): Promise<
+    ApiResponse<{
+      id: number;
+      fileName: string;
+      filePath: string;
+      fileSize: number;
+      mimeType: string;
+      fileMd5: string;
+      blurhash: string;
+      width: number;
+      height: number;
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
+    return this.request(`/api/file/${fileId}`);
+  }
+
+  // 生成二维码
+  async generateQRCode(): Promise<ApiResponse<{ key: string }>> {
+    return this.request<{ key: string }>("/api/qr/generate");
+  }
+
+  // 刷新二维码
+  async refreshQRCode(key: string): Promise<ApiResponse<{ key: string }>> {
+    return this.request<{ key: string }>(`/api/qr/regenerate/${key}`);
+  }
+
+  // 检查二维码状态
+  async checkQRCodeStatus(key: string): Promise<
+    ApiResponse<{
+      status: "pending" | "confirm" | "timeout" | "success";
+      token?: {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+      };
+      user?: ApiUser;
+    }>
+  > {
+    return this.request(`/api/qr/check/${key}`);
   }
 }
 

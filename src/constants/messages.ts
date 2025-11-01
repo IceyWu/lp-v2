@@ -23,21 +23,43 @@ export const MESSAGES = {
     REGISTER: "注册",
     ACCOUNT: "账号",
     PASSWORD: "密码",
+    PASSWORD_CONFIRM: "确认密码",
     USERNAME: "用户名",
     NAME: "昵称",
+    EMAIL: "邮箱",
+    CODE: "验证码",
     SIGNATURE: "个性签名",
     SUBMIT: "提交",
     CANCEL: "取消",
     SAVE: "保存",
     SAVING: "保存中...",
     PROCESSING: "处理中...",
+    SEND_CODE: "发送验证码",
+    SENDING_CODE: "发送中...",
+    RESEND_CODE: (seconds: number) => `${seconds}秒后重试`,
     PLACEHOLDER: {
       ACCOUNT: "请输入账号",
       PASSWORD: "请输入密码",
+      PASSWORD_CONFIRM: "请再次输入密码",
       USERNAME: "请输入用户名",
       NAME: "请输入昵称",
+      EMAIL: "请输入邮箱",
+      CODE: "请输入验证码",
       SIGNATURE: "记录生活中的美好时光 ✨",
     },
+  },
+
+  // 二维码登录
+  QRCODE_LOGIN: {
+    TAB_ACCOUNT: "账号登录",
+    TAB_QRCODE: "二维码登录",
+    SCAN_TIP: "打开移动应用扫描二维码登录",
+    STATUS_PENDING: "待扫码",
+    STATUS_CONFIRM: "待确认",
+    STATUS_TIMEOUT: "二维码已过期",
+    STATUS_SUCCESS: "登录成功",
+    REFRESH_TIP: "点击刷新二维码",
+    GENERATING: "生成中...",
   },
 
   // 状态
@@ -54,6 +76,7 @@ export const MESSAGES = {
     IMAGE_LOAD_FAILED: "图片加载失败",
     NETWORK_ERROR: "网络连接失败，请检查网络后重试",
     LOGIN_EXPIRED: "登录已过期，请重新登录",
+    PASSWORD_MISMATCH: "两次输入的密码不一致",
   },
 
   // 成功消息
