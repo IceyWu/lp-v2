@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { ImageObj } from "../hooks/useImageViewer";
 import { useImageViewer } from "../hooks/useImageViewer";
 import type { PostImage } from "../types";
+import { LivePhotoViewer } from "live-photo";
 
 interface ImagePreviewProps {
   images: PostImage[];
@@ -18,7 +19,40 @@ export default function ImagePreview({
 }: ImagePreviewProps) {
   const { initWithPostImages, openPreview, closePreview } = useImageViewer({
     onImageLoad: (_imgObj: ImageObj, _idx: number) => {
-      // intentionally no-op
+      if (_imgObj.type !== "live-photo") {
+        // 对于普通图片，loading 已经由 customLoading 控制
+        return;
+      }
+      
+      // 对于 live-photo，创建 LivePhotoViewer 实例
+      const demoSource = {
+        photoSrc: _imgObj.src || "",
+        videoSrc: _imgObj.videoSrc || "",
+      };
+      const container = document.getElementById(`live-photo-container-${_idx}`);
+      
+      if (!container) return;
+      
+      // 创建 LivePhotoViewer 实例
+      new LivePhotoViewer({
+        photoSrc: demoSource.photoSrc,
+        videoSrc: demoSource.videoSrc,
+        container: container,
+        // width: 300,
+        height: 600,
+        // autoplay: false,
+         borderRadius: "8px",
+        imageCustomization: {
+          styles: {
+            objectFit: "cover",
+           
+          },
+          attributes: {
+            alt: "Live Photo Demo",
+            loading: "lazy",
+          },
+        },
+      });
     },
   });
 

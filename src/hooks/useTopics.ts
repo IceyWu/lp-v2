@@ -10,17 +10,19 @@ import type { Post, PostImage } from "../types";
 // 将API话题数据转换为前端Post类型
 const transformApiTopicToPost = (apiTopic: ApiTopic): Post => {
   // 提取图片信息，包含完整的元数据
+  // const images: PostImage[] = apiTopic.fileList
+  //   .filter((file) => file.type.startsWith("image/"))
+  //   .map((file) => ({
+  //     id: file.id,
+  //     url: file.url,
+  //     width: file.width,
+  //     height: file.height,
+  //     blurhash: file.blurhash,
+  //     type: file.type,
+  //     name: file.name,
+  //   }));
   const images: PostImage[] = apiTopic.fileList
-    .filter((file) => file.type.startsWith("image/"))
-    .map((file) => ({
-      id: file.id,
-      url: file.url,
-      width: file.width,
-      height: file.height,
-      blurhash: file.blurhash,
-      type: file.type,
-      name: file.name,
-    }));
+   
 
   // 提取标签
   const tags = apiTopic.topicTags.map((topicTag) => topicTag.tag.title);

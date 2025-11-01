@@ -1,12 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { type ImageObj, ViewerPro, type ViewerProOptions } from "viewer-pro";
+import { createElement, useCallback, useEffect, useRef, useState } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { type ImageObj, ViewerPro, type ViewerProOptions,type ViewerItem } from "viewer-pro";
 import type { PostImage } from "../types";
+import ImageInfoPanel from "../components/ImageInfoPanel";
+
 
 export type { ImageObj, ViewerProOptions };
 
 export function useImageViewer(initialOptions: ViewerProOptions = {}) {
   const [images, setImages] = useState<ImageObj[]>(initialOptions.images || []);
   const viewerRef = useRef<ViewerPro | null>(null);
+  const renderedContainers = useRef(new Map<number, HTMLElement>());
+  const renderedRoots = useRef(new Map<number, Root>());
 
   // 自定义加载节点
   const createCustomLoadingNode = useCallback(() => {
@@ -41,22 +46,58 @@ export function useImageViewer(initialOptions: ViewerProOptions = {}) {
     return customLoading;
   }, []);
 
+  // 自定义信息渲染节点
+  const createCustomInfoNode = useCallback((viewerItem: ViewerItem, idx: number) => {
+    console.log('🌳-----idx-----', idx);
+    console.log('🌳-----viewerItem-----', viewerItem);
+    
+    // 清理之前的容器（如果存在）
+    const oldRoot = renderedRoots.current.get(idx);
+    if (oldRoot) {
+      oldRoot.unmount();
+      renderedRoots.current.delete(idx);
+    }
+    
+    // 创建一个新的容器元素
+    const container = document.createElement("div");
+    container.id = `custom-info-${idx}`;
+    container.style.width = "100%";
+    container.style.height = "100%";
+    
+    // 使用 React 18 的 createRoot 渲染组件
+    const root = createRoot(container);
+    root.render(createElement(ImageInfoPanel, { viewerItem, index: idx }));
+    
+    // 保存容器和 root 引用以便后续清理
+    renderedContainers.current.set(idx, container);
+    renderedRoots.current.set(idx, root);
+    
+    return container;
+  }, []);
+
   // 自定义渲染节点
-  const createCustomRenderNode = useCallback((imgObj: ImageObj) => {
+  const createCustomRenderNode = useCallback((imgObj: ImageObj,idx:number) => {
     const box = document.createElement("div");
+    box.id = `custom-render-${idx}`;
     box.style.display = "flex";
     box.style.flexDirection = "column";
     box.style.alignItems = "center";
     box.style.justifyContent = "center";
     box.style.height = "100%";
-    box.innerHTML = `
-      <img 
-        src="${imgObj.src}" 
-        style="max-width:90%;max-height:90%;border-radius:12px;box-shadow:0 2px 16px #0004;"
-        alt="${imgObj.title || ""}"
-      >
-      ${imgObj.title ? `<div style="color:#fff;margin-top:8px;">${imgObj.title}</div>` : ""}
-    `;
+    box.style.transformOrigin = "center center";
+    box.style.willChange = "transform";
+    if (imgObj.type === "live-photo") {
+      box.innerHTML = `
+        <div id="live-photo-container-${idx}"></div>
+         `;
+    } else {
+      box.innerHTML = `
+          <img src="${
+            imgObj.src
+          }" style="max-width:90%;max-height:90%;">
+        `;
+    }
+
     return box;
   }, []);
 
@@ -70,7 +111,8 @@ export function useImageViewer(initialOptions: ViewerProOptions = {}) {
       images,
       loadingNode: initialOptions.loadingNode || createCustomLoadingNode(),
       renderNode: initialOptions.renderNode || createCustomRenderNode,
-      onImageLoad: initialOptions.onImageLoad || ((_imgObj, _idx) => {}),
+      onImageLoad: initialOptions.onImageLoad || ((_imgObj: ImageObj, _idx: number) => {}),
+      infoRender: initialOptions.infoRender || createCustomInfoNode,
     };
 
     viewerRef.current = new ViewerPro(viewerOptions);
@@ -126,11 +168,14 @@ export function useImageViewer(initialOptions: ViewerProOptions = {}) {
 
   // 从 PostImage 数组转换为 ImageObj 数组
   const convertPostImagesToImageObj = useCallback(
-    (postImages: PostImage[]): ImageObj[] => {
-      return postImages.map((img) => ({
-        src: img.url,
-        thumbnail: `${img.url}?x-oss-process=image/resize,w_300,h_200,m_lfit/quality,q_60/format,webp`,
-        title: img.name,
+    (postImages: any[]): any[] => {
+      return postImages.map((file) => ({
+        ...file,
+        src: file.url,
+        thumbnail: `${file.url}?x-oss-process=image/resize,w_300,h_200,m_lfit/quality,q_60/format,webp`,
+        title: file.name,
+         type: !!file.videoSrc ? "live-photo" : file.type,
+
       }));
     },
     []
@@ -157,6 +202,10 @@ export function useImageViewer(initialOptions: ViewerProOptions = {}) {
       if (viewerRef.current) {
         viewerRef.current.close();
       }
+      // 清理所有渲染的 React 组件
+      renderedRoots.current.forEach((root) => root.unmount());
+      renderedRoots.current.clear();
+      renderedContainers.current.clear();
     },
     []
   );

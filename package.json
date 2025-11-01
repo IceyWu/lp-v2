@@ -59,7 +59,7 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
     "use-local-storage-state": "^19.5.0",
-    "viewer-pro": "^0.0.21"
+    "viewer-pro": "^0.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
@@ -78,7 +78,7 @@
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "ultracite": "^5.4.5",
-    "vite": "^7.1.7"
+    "vite": "^7.1.12"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
