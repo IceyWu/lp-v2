@@ -47,6 +47,7 @@ export interface UpdateProfileData {
   name?: string;
   signature?: string;
   avatarFile?: File | null;
+  backgroundFile?: File | null;
   mobile?: string;
   email?: string;
   sex?: number;
@@ -64,6 +65,7 @@ export interface FormErrors {
   name?: string;
   signature?: string;
   avatar?: string;
+  background?: string;
   mobile?: string;
   email?: string;
 }

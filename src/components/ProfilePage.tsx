@@ -193,53 +193,101 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      {/* 紧凑的个人信息区域 */}
-      <div className="rounded-2xl border border-gray-100 bg-white p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
+      {/* 个人信息区域 - 现代极简设计 */}
+      <div className="group relative overflow-hidden rounded-3xl border border-border/50 bg-card transition-all hover:border-border">
+        {/* 背景图片区域 - 带视差效果 */}
+        <div className="relative h-52 w-full overflow-hidden">
+          {user.backgroundInfo?.url ? (
+            <>
+              <img
+                alt="Background"
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                src={user.backgroundInfo.url}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/0 via-background/0 to-background" />
+            </>
+          ) : (
+            <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-muted via-muted/80 to-muted/60">
+              {/* 几何装饰元素 */}
+              <div className="absolute inset-0 opacity-[0.03]">
+                <div className="absolute top-0 left-0 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-[40px] border-foreground" />
+                <div className="absolute top-1/2 right-0 h-48 w-48 translate-x-1/2 -translate-y-1/2 rounded-full border-[30px] border-foreground" />
+              </div>
+              <div className="flex h-full w-full items-center justify-center">
+                <div className="text-center">
+                  <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-muted-foreground/30">
+                    <Camera className="text-muted-foreground/50" size={28} />
+                  </div>
+                  <p className="text-muted-foreground/60 text-sm font-medium">
+                    添加背景图片
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 编辑按钮 - 浮动设计 */}
+          <button
+            aria-label="编辑个人资料"
+            className="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-background/60 backdrop-blur-xl transition-all hover:border-border hover:bg-background/80 hover:shadow-lg"
+            onClick={() => setIsEditDialogOpen(true)}
+          >
+            <Settings className="text-foreground" size={16} />
+          </button>
+        </div>
+
+        {/* 用户信息区域 */}
+        <div className="relative px-8 pb-8">
+          {/* 头像 - 优化设计 */}
+          <div className="relative -mt-16 mb-6 inline-block">
+            {/* 外层装饰框 */}
+            <div className="absolute -inset-2 rounded-3xl bg-gradient-to-br from-foreground/5 to-foreground/0" />
+            {/* 头像容器 */}
+            <div className="relative overflow-hidden rounded-2xl border-[3px] border-background shadow-2xl ring-1 ring-foreground/5">
               <img
                 alt="Avatar"
-                className="h-16 w-16 rounded-full object-cover"
+                className="h-28 w-28 object-cover transition-transform duration-300 hover:scale-105"
                 src={
                   user.avatarInfo?.url ||
                   "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=120"
                 }
               />
-              <button className="-bottom-1 -right-1 absolute flex h-6 w-6 items-center justify-center rounded-full bg-black text-white">
-                <Camera size={12} />
-              </button>
             </div>
-
-            <div>
-              <h1 className="font-semibold text-black text-xl">
-                {user.name || user.account}
-              </h1>
-              <p className="text-gray-600 text-sm">
-                {user.signature || "记录生活中的美好时光 ✨"}
-              </p>
-            </div>
+            {/* 装饰元素 - 左上角 */}
+            <div className="absolute -top-1 -left-1 h-3 w-3 rounded-tl-lg border-l-2 border-t-2 border-foreground/20" />
+            {/* 装饰元素 - 右下角 */}
+            <div className="absolute -bottom-1 -right-1 h-3 w-3 rounded-br-lg border-b-2 border-r-2 border-foreground/20" />
           </div>
 
-          <button
-            aria-label="编辑个人资料"
-            className="rounded-full p-2 transition-colors hover:bg-gray-100"
-            onClick={() => setIsEditDialogOpen(true)}
-          >
-            <Settings className="text-gray-500" size={18} />
-          </button>
-        </div>
+          {/* 用户名和签名 */}
+          <div className="mb-8">
+            <h1 className="mb-3 font-bold text-3xl tracking-tight text-foreground">
+              {user.name || user.account}
+            </h1>
+            <p className="max-w-md text-muted-foreground/80 text-sm leading-relaxed">
+              {user.signature || "记录生活中的美好时光 ✨"}
+            </p>
+          </div>
 
-        {/* 紧凑的统计数据 */}
-        <div className="mt-6 flex justify-around border-gray-100 border-t pt-4">
-          {stats.map((stat, index) => (
-            <div className="text-center" key={index}>
-              <div className="font-semibold text-black text-xl">
-                {stat.value}
+          {/* 统计数据 - 横向布局 */}
+          <div className="flex items-center gap-8">
+            {stats.map((stat, index) => (
+              <div className="group/stat relative" key={index}>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-bold text-3xl tabular-nums text-foreground transition-colors group-hover/stat:text-foreground/70">
+                    {stat.value}
+                  </span>
+                  <span className="text-muted-foreground text-xs font-medium uppercase tracking-wider">
+                    {stat.label}
+                  </span>
+                </div>
+                {/* 底部装饰线 */}
+                {index < stats.length - 1 && (
+                  <div className="absolute top-1/2 -right-4 h-8 w-px -translate-y-1/2 bg-border/50" />
+                )}
               </div>
-              <div className="text-gray-500 text-xs">{stat.label}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 

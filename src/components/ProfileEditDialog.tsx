@@ -9,6 +9,7 @@ import { useUpdateProfile } from "../hooks/useUpdateProfile";
 import { ApiUser } from "../services/api";
 import { FormErrors } from "../types";
 import AvatarUpload from "./AvatarUpload";
+import BackgroundUpload from "./BackgroundUpload";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -52,6 +53,10 @@ export default function ProfileEditDialog({
   const [github, setGithub] = useState(user.github || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
+  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(
+    null
+  );
   const [errors, setErrors] = useState<FormErrors>({});
 
   const updateProfile = useUpdateProfile();
@@ -63,6 +68,7 @@ export default function ProfileEditDialog({
       setName(user.name || "");
       setSignature(user.signature || "");
       setEmail(user.email || "");
+      setMobile(user.mobile || "");
       setCity(user.city || "");
       setJob(user.job || "");
       setCompany(user.company || "");
@@ -70,6 +76,8 @@ export default function ProfileEditDialog({
       setGithub(user.github || "");
       setAvatarFile(null);
       setAvatarPreview(null);
+      setBackgroundFile(null);
+      setBackgroundPreview(null);
       setErrors({});
     }
   }, [open, user]);
@@ -86,7 +94,8 @@ export default function ProfileEditDialog({
       company !== (user.company || "") ||
       website !== (user.website || "") ||
       github !== (user.github || "") ||
-      avatarFile !== null
+      avatarFile !== null ||
+      backgroundFile !== null
     );
   };
 
@@ -141,6 +150,23 @@ export default function ProfileEditDialog({
     setErrors((prev) => ({ ...prev, avatar: error }));
   };
 
+  // 处理背景图片变化
+  const handleBackgroundChange = (file: File, preview: string) => {
+    setBackgroundFile(file);
+    setBackgroundPreview(preview);
+  };
+
+  // 处理背景图片错误
+  const handleBackgroundError = (error: string) => {
+    setErrors((prev) => ({ ...prev, background: error }));
+  };
+
+  // 移除背景图片
+  const handleRemoveBackground = () => {
+    setBackgroundFile(null);
+    setBackgroundPreview(null);
+  };
+
   // 处理保存
   const handleSave = async () => {
     // 验证所有字段
@@ -167,6 +193,7 @@ export default function ProfileEditDialog({
         website: website !== (user.website || "") ? website : undefined,
         github: github !== (user.github || "") ? github : undefined,
         avatarFile,
+        backgroundFile,
       });
 
       toast.success("保存成功", {
@@ -216,6 +243,22 @@ export default function ProfileEditDialog({
           onAvatarChange={handleAvatarChange}
           onError={handleAvatarError}
           previewAvatar={avatarPreview}
+        />
+      </div>
+
+      {/* 背景图片上传 */}
+      <div className="space-y-3">
+        <h3 className="flex items-center gap-2 font-semibold text-base text-foreground">
+          <span className="h-5 w-1 rounded-full bg-primary" />
+          背景图片
+        </h3>
+        <BackgroundUpload
+          currentBackground={user.backgroundInfo?.url}
+          error={errors.background}
+          onBackgroundChange={handleBackgroundChange}
+          onError={handleBackgroundError}
+          onRemove={handleRemoveBackground}
+          previewBackground={backgroundPreview}
         />
       </div>
 

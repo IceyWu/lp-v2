@@ -9,13 +9,28 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (data: UpdateProfileData) => {
       let avatarFileMd5: string | undefined;
+      let backgroundFileMd5: string | undefined;
 
       // 如果有头像文件，使用统一的上传服务
       if (data.avatarFile) {
         const uploadedFile = await uploadFile(data.avatarFile, {
+          compressPNG: true,
+          compressJPEG: true,
+          maxSizeMB: 1,
         });
 
         avatarFileMd5 = uploadedFile.md5 || uploadedFile.fileMd5;
+      }
+
+      // 如果有背景图片文件，使用统一的上传服务
+      if (data.backgroundFile) {
+        const uploadedFile = await uploadFile(data.backgroundFile, {
+          compressPNG: true,
+          compressJPEG: true,
+          maxSizeMB: 5,
+        });
+
+        backgroundFileMd5 = uploadedFile.md5 || uploadedFile.fileMd5;
       }
 
       // 获取当前用户信息以获取 userId
@@ -52,6 +67,7 @@ export const useUpdateProfile = () => {
       if (data.website !== undefined) updateData.website = data.website;
       if (data.github !== undefined) updateData.github = data.github;
       if (avatarFileMd5) updateData.avatarFileMd5 = avatarFileMd5;
+      if (backgroundFileMd5) updateData.backgroundInfoFileMd5 = backgroundFileMd5;
       if (data.backgroundInfoFileMd5 !== undefined)
         updateData.backgroundInfoFileMd5 = data.backgroundInfoFileMd5;
 
