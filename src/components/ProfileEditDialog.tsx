@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   PROFILE_VALIDATION,
@@ -43,6 +43,13 @@ export default function ProfileEditDialog({
 }: ProfileEditDialogProps) {
   const [name, setName] = useState(user.name || "");
   const [signature, setSignature] = useState(user.signature || "");
+  const [email, setEmail] = useState(user.email || "");
+  const [mobile, setMobile] = useState(user.mobile || "");
+  const [city, setCity] = useState(user.city || "");
+  const [job, setJob] = useState(user.job || "");
+  const [company, setCompany] = useState(user.company || "");
+  const [website, setWebsite] = useState(user.website || "");
+  const [github, setGithub] = useState(user.github || "");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -50,11 +57,35 @@ export default function ProfileEditDialog({
   const updateProfile = useUpdateProfile();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
+  // 当对话框打开时重置状态
+  useEffect(() => {
+    if (open) {
+      setName(user.name || "");
+      setSignature(user.signature || "");
+      setEmail(user.email || "");
+      setCity(user.city || "");
+      setJob(user.job || "");
+      setCompany(user.company || "");
+      setWebsite(user.website || "");
+      setGithub(user.github || "");
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      setErrors({});
+    }
+  }, [open, user]);
+
   // 检查表单是否有修改
   const hasChanges = () => {
     return (
       name !== (user.name || "") ||
       signature !== (user.signature || "") ||
+      email !== (user.email || "") ||
+      mobile !== (user.mobile || "") ||
+      city !== (user.city || "") ||
+      job !== (user.job || "") ||
+      company !== (user.company || "") ||
+      website !== (user.website || "") ||
+      github !== (user.github || "") ||
       avatarFile !== null
     );
   };
@@ -128,6 +159,13 @@ export default function ProfileEditDialog({
       await updateProfile.mutateAsync({
         name: name !== user.name ? name : undefined,
         signature: signature !== user.signature ? signature : undefined,
+        email: email !== (user.email || "") ? email : undefined,
+        mobile: mobile !== (user.mobile || "") ? mobile : undefined,
+        city: city !== (user.city || "") ? city : undefined,
+        job: job !== (user.job || "") ? job : undefined,
+        company: company !== (user.company || "") ? company : undefined,
+        website: website !== (user.website || "") ? website : undefined,
+        github: github !== (user.github || "") ? github : undefined,
         avatarFile,
       });
 
@@ -169,69 +207,203 @@ export default function ProfileEditDialog({
   };
 
   const formContent = (
-    <div className="space-y-6 py-4">
+    <div className="max-h-[65vh] space-y-8 overflow-y-auto py-6 pr-2">
       {/* 头像上传 */}
-      <AvatarUpload
-        currentAvatar={user.avatarInfo?.url}
-        error={errors.avatar}
-        onAvatarChange={handleAvatarChange}
-        onError={handleAvatarError}
-        previewAvatar={avatarPreview}
-      />
-
-      {/* 昵称输入 */}
-      <div className="space-y-2">
-        <Label htmlFor="name">昵称</Label>
-        <Input
-          aria-describedby={errors.name ? "name-error" : undefined}
-          aria-invalid={!!errors.name}
-          className="min-h-[44px]"
-          id="name"
-          maxLength={20}
-          onChange={handleNameChange}
-          placeholder="请输入昵称"
-          value={name}
+      <div className="flex justify-center border-border border-b pb-8">
+        <AvatarUpload
+          currentAvatar={user.avatarInfo?.url}
+          error={errors.avatar}
+          onAvatarChange={handleAvatarChange}
+          onError={handleAvatarError}
+          previewAvatar={avatarPreview}
         />
-        {errors.name && (
-          <p className="text-sm text-red-500" id="name-error" role="alert">
-            {errors.name}
-          </p>
-        )}
       </div>
 
-      {/* 签名输入 */}
-      <div className="space-y-2">
-        <Label htmlFor="signature">个性签名</Label>
-        <Textarea
-          aria-describedby={
-            errors.signature ? "signature-error" : "signature-count"
-          }
-          aria-invalid={!!errors.signature}
-          className="min-h-[44px]"
-          id="signature"
-          maxLength={100}
-          onChange={handleSignatureChange}
-          placeholder="记录生活中的美好时光 ✨"
-          rows={3}
-          value={signature}
-        />
-        <div className="flex items-center justify-between">
-          {errors.signature && (
+      {/* 基本信息 */}
+      <div className="space-y-5">
+        <h3 className="flex items-center gap-2 font-semibold text-base text-foreground">
+          <span className="h-5 w-1 rounded-full bg-primary" />
+          基本信息
+        </h3>
+        <div className="grid gap-5 md:grid-cols-2">
+
+          {/* 昵称输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="name">
+              昵称 <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              aria-describedby={errors.name ? "name-error" : undefined}
+              aria-invalid={!!errors.name}
+              className="h-11"
+              id="name"
+              maxLength={20}
+              onChange={handleNameChange}
+              placeholder="请输入昵称"
+              value={name}
+            />
+            {errors.name && (
+              <p className="text-sm text-red-500" id="name-error" role="alert">
+                {errors.name}
+              </p>
+            )}
+          </div>
+
+          {/* 邮箱输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="email">
+              邮箱
+            </Label>
+            <Input
+              className="h-11"
+              id="email"
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
+              type="email"
+              value={email}
+            />
+          </div>
+
+          {/* 手机号输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="mobile">
+              手机号
+            </Label>
+            <Input
+              className="h-11"
+              id="mobile"
+              onChange={(e) => setMobile(e.target.value)}
+              placeholder="请输入手机号"
+              type="tel"
+              value={mobile}
+            />
+          </div>
+
+          {/* 城市输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="city">
+              城市
+            </Label>
+            <Input
+              className="h-11"
+              id="city"
+              onChange={(e) => setCity(e.target.value)}
+              placeholder="请输入城市"
+              value={city}
+            />
+          </div>
+        </div>
+
+        {/* 签名输入 - 全宽 */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium" htmlFor="signature">
+            个性签名
+          </Label>
+          <Textarea
+            aria-describedby={
+              errors.signature ? "signature-error" : "signature-count"
+            }
+            aria-invalid={!!errors.signature}
+            className="min-h-[80px] resize-none"
+            id="signature"
+            maxLength={100}
+            onChange={handleSignatureChange}
+            placeholder="记录生活中的美好时光 ✨"
+            value={signature}
+          />
+          <div className="flex items-center justify-between">
+            {errors.signature && (
+              <p
+                className="text-sm text-red-500"
+                id="signature-error"
+                role="alert"
+              >
+                {errors.signature}
+              </p>
+            )}
             <p
-              className="text-sm text-red-500"
-              id="signature-error"
-              role="alert"
+              aria-live="polite"
+              className="ml-auto text-muted-foreground text-xs"
+              id="signature-count"
             >
-              {errors.signature}
+              {signature.length}/100
             </p>
-          )}
-          <p
-            aria-live="polite"
-            className="ml-auto text-xs text-gray-500"
-            id="signature-count"
-          >
-            {signature.length}/100
-          </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 职业信息 */}
+      <div className="space-y-5">
+        <h3 className="flex items-center gap-2 font-semibold text-base text-foreground">
+          <span className="h-5 w-1 rounded-full bg-primary" />
+          职业信息
+        </h3>
+        <div className="grid gap-5 md:grid-cols-2">
+          {/* 职业输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="job">
+              职业
+            </Label>
+            <Input
+              className="h-11"
+              id="job"
+              onChange={(e) => setJob(e.target.value)}
+              placeholder="请输入职业"
+              value={job}
+            />
+          </div>
+
+          {/* 公司输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="company">
+              公司
+            </Label>
+            <Input
+              className="h-11"
+              id="company"
+              onChange={(e) => setCompany(e.target.value)}
+              placeholder="请输入公司"
+              value={company}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 社交信息 */}
+      <div className="space-y-5">
+        <h3 className="flex items-center gap-2 font-semibold text-base text-foreground">
+          <span className="h-5 w-1 rounded-full bg-primary" />
+          社交信息
+        </h3>
+        <div className="grid gap-5 md:grid-cols-2">
+          {/* 网站输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="website">
+              个人网站
+            </Label>
+            <Input
+              className="h-11"
+              id="website"
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://example.com"
+              type="url"
+              value={website}
+            />
+          </div>
+
+          {/* GitHub 输入 */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium" htmlFor="github">
+              GitHub
+            </Label>
+            <Input
+              className="h-11"
+              id="github"
+              onChange={(e) => setGithub(e.target.value)}
+              placeholder="请输入 GitHub 用户名"
+              value={github}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -240,7 +412,7 @@ export default function ProfileEditDialog({
   const footerButtons = (
     <>
       <Button
-        className="min-h-[44px]"
+        className="h-11 flex-1 md:flex-none md:min-w-[120px]"
         disabled={updateProfile.isPending}
         onClick={handleCancel}
         type="button"
@@ -249,7 +421,7 @@ export default function ProfileEditDialog({
         取消
       </Button>
       <Button
-        className="min-h-[44px]"
+        className="h-11 flex-1 md:flex-none md:min-w-[120px]"
         disabled={!canSave()}
         onClick={handleSave}
         type="button"
@@ -262,12 +434,12 @@ export default function ProfileEditDialog({
   if (isDesktop) {
     return (
       <Dialog onOpenChange={onOpenChange} open={open}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>编辑个人资料</DialogTitle>
+            <DialogTitle className="text-xl">编辑个人资料</DialogTitle>
           </DialogHeader>
           {formContent}
-          <DialogFooter>{footerButtons}</DialogFooter>
+          <DialogFooter className="gap-2">{footerButtons}</DialogFooter>
         </DialogContent>
       </Dialog>
     );
@@ -275,12 +447,12 @@ export default function ProfileEditDialog({
 
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent className="h-[90vh]" side="bottom">
+      <SheetContent className="h-[95vh] w-full" side="bottom">
         <SheetHeader>
-          <SheetTitle>编辑个人资料</SheetTitle>
+          <SheetTitle className="text-xl">编辑个人资料</SheetTitle>
         </SheetHeader>
         {formContent}
-        <SheetFooter className="gap-2">{footerButtons}</SheetFooter>
+        <SheetFooter className="gap-2 pt-4">{footerButtons}</SheetFooter>
       </SheetContent>
     </Sheet>
   );

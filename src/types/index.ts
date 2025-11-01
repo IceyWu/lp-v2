@@ -47,12 +47,25 @@ export interface UpdateProfileData {
   name?: string;
   signature?: string;
   avatarFile?: File | null;
+  mobile?: string;
+  email?: string;
+  sex?: number;
+  birthday?: string;
+  city?: string;
+  job?: string;
+  company?: string;
+  website?: string;
+  github?: string;
+  avatarFileMd5?: string;
+  backgroundInfoFileMd5?: string;
 }
 
 export interface FormErrors {
   name?: string;
   signature?: string;
   avatar?: string;
+  mobile?: string;
+  email?: string;
 }
 
 // 通知相关类型

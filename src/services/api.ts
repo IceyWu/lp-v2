@@ -105,6 +105,7 @@ export interface CreateCollectionDto {
 export interface ApiUser {
   id: number;
   account: string;
+  mobile?: string;
   name: string;
   avatar?: string;
   github?: string | null;
@@ -515,6 +516,32 @@ class ApiService {
   }): Promise<ApiResponse<ApiUser>> {
     return this.request<ApiUser>("/api/user/profile", {
       method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  // 更新用户信息（完整版）
+  async updateUser(
+    userId: number,
+    data: {
+      name?: string;
+      mobile?: string;
+      email?: string;
+      avatar?: string;
+      sex?: number;
+      birthday?: string;
+      city?: string;
+      job?: string;
+      company?: string;
+      signature?: string;
+      website?: string;
+      github?: string;
+      avatarFileMd5?: string;
+      backgroundInfoFileMd5?: string;
+    }
+  ): Promise<ApiResponse<ApiUser>> {
+    return this.request<ApiUser>(`/api/user/${userId}`, {
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   }

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import imageCompression from "browser-image-compression";
-import { PROFILE_VALIDATION } from "../constants/validation";
 import { apiService } from "../services/api";
+import { uploadFile } from "../services/upload/uploadService";
 import { UpdateProfileData } from "../types";
 
 export const useUpdateProfile = () => {
@@ -9,47 +8,57 @@ export const useUpdateProfile = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateProfileData) => {
-      let avatarMd5: string | undefined;
+      let avatarFileMd5: string | undefined;
 
-      // 如果有头像文件，先上传头像
+      // 如果有头像文件，使用统一的上传服务
       if (data.avatarFile) {
-        // 压缩图片
-        const compressedFile = await imageCompression(data.avatarFile, {
-          maxSizeMB: PROFILE_VALIDATION.AVATAR.COMPRESSION.MAX_SIZE_MB,
-          maxWidthOrHeight:
-            PROFILE_VALIDATION.AVATAR.COMPRESSION.MAX_WIDTH_OR_HEIGHT,
-          useWebWorker: true,
+        const uploadedFile = await uploadFile(data.avatarFile, {
         });
 
-        // 上传头像
-        const uploadResponse = await apiService.uploadAvatar(compressedFile);
-        if (uploadResponse.code === 200 && uploadResponse.result) {
-          avatarMd5 = uploadResponse.result.md5;
-        }
+        avatarFileMd5 = uploadedFile.md5 || uploadedFile.fileMd5;
       }
 
-      // 更新用户信息
-      const profileData: { name?: string; signature?: string } = {};
-      if (data.name !== undefined) {
-        profileData.name = data.name;
-      }
-      if (data.signature !== undefined) {
-        profileData.signature = data.signature;
-      }
+      // 获取当前用户信息以获取 userId
+      const currentUserResponse = await apiService.getCurrentUser();
+      const userId = currentUserResponse.result.id;
 
-      // 如果有基本信息需要更新
-      if (Object.keys(profileData).length > 0) {
-        await apiService.updateUserProfile(profileData);
-      }
+      // 构建更新数据
+      const updateData: {
+        name?: string;
+        signature?: string;
+        mobile?: string;
+        email?: string;
+        sex?: number;
+        birthday?: string;
+        city?: string;
+        job?: string;
+        company?: string;
+        website?: string;
+        github?: string;
+        avatarFileMd5?: string;
+        backgroundInfoFileMd5?: string;
+      } = {};
 
-      // 如果有头像需要更新
-      if (avatarMd5) {
-        await apiService.updateUserAvatar(avatarMd5);
-      }
+      // 只添加有值的字段
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.signature !== undefined) updateData.signature = data.signature;
+      if (data.mobile !== undefined) updateData.mobile = data.mobile;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.sex !== undefined) updateData.sex = data.sex;
+      if (data.birthday !== undefined) updateData.birthday = data.birthday;
+      if (data.city !== undefined) updateData.city = data.city;
+      if (data.job !== undefined) updateData.job = data.job;
+      if (data.company !== undefined) updateData.company = data.company;
+      if (data.website !== undefined) updateData.website = data.website;
+      if (data.github !== undefined) updateData.github = data.github;
+      if (avatarFileMd5) updateData.avatarFileMd5 = avatarFileMd5;
+      if (data.backgroundInfoFileMd5 !== undefined)
+        updateData.backgroundInfoFileMd5 = data.backgroundInfoFileMd5;
 
-      // 返回最新的用户信息
-      const userResponse = await apiService.getCurrentUser();
-      return userResponse.result;
+      // 调用新的更新接口
+      const response = await apiService.updateUser(userId, updateData);
+
+      return response.result;
     },
     onSuccess: () => {
       // 刷新用户数据缓存
