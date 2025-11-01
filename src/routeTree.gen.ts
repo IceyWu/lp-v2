@@ -13,9 +13,9 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as UploadDemoImport } from './routes/upload-demo'
 import { Route as SearchImport } from './routes/search'
 import { Route as ProfileImport } from './routes/profile'
+import { Route as NotificationsImport } from './routes/notifications'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -27,6 +27,11 @@ const SearchRoute = SearchImport.update({
 
 const ProfileRoute = ProfileImport.update({
   path: '/profile',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const NotificationsRoute = NotificationsImport.update({
+  path: '/notifications',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -44,6 +49,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsImport
       parentRoute: typeof rootRoute
     }
     '/profile': {
@@ -67,6 +79,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren({
   IndexRoute,
+  NotificationsRoute,
   ProfileRoute,
   SearchRoute,
 })

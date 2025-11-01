@@ -682,6 +682,48 @@ class ApiService {
   > {
     return this.request(`/api/qr/check/${key}`);
   }
+
+  // 获取通知列表
+  async getNotifications(params?: {
+    page?: number;
+    pageSize?: number;
+    type?: string;
+    isRead?: boolean;
+  }): Promise<ApiResponse<any>> {
+    const searchParams = new URLSearchParams();
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/api/message/getOneByInfo${queryString ? `?${queryString}` : ""}`;
+
+    return this.request(endpoint);
+  }
+
+  // 标记单个通知为已读
+  async markNotificationAsRead(id: number): Promise<ApiResponse<any>> {
+    return this.request(`/api/message/${id}/read`, {
+      method: "PATCH",
+    });
+  }
+
+  // 标记所有通知为已读
+  async markAllNotificationsAsRead(): Promise<ApiResponse<any>> {
+    return this.request("/api/message/read-all", {
+      method: "PATCH",
+    });
+  }
+
+  // 获取未读通知数量
+  async getUnreadNotificationCount(): Promise<ApiResponse<{ count: number }>> {
+    return this.request<{ count: number }>("/api/message/getOneByInfo");
+  }
 }
 
 export const apiService = new ApiService();

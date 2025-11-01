@@ -344,12 +344,15 @@ export default function LoginModal({
                   <div className="flex gap-2">
                     <Input
                       id="code"
-                      onChange={(e) =>
-                        setFormData({ ...formData, code: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setFormData({ ...formData, code: value });
+                      }}
                       placeholder={MESSAGES.FORM.PLACEHOLDER.CODE}
                       required
                       type="text"
+                      inputMode="numeric"
+                      maxLength={4}
                       value={formData.code}
                       className="flex-1"
                     />
@@ -428,12 +431,15 @@ export default function LoginModal({
                       <div className="flex gap-2">
                         <Input
                           id="code"
-                          onChange={(e) =>
-                            setFormData({ ...formData, code: e.target.value })
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+                            setFormData({ ...formData, code: value });
+                          }}
                           placeholder={MESSAGES.FORM.PLACEHOLDER.CODE}
                           required
                           type="text"
+                          inputMode="numeric"
+                          maxLength={4}
                           value={formData.code}
                           className="flex-1"
                         />
@@ -509,12 +515,15 @@ export default function LoginModal({
                   <div className="flex gap-2">
                     <Input
                       id="code"
-                      onChange={(e) =>
-                        setFormData({ ...formData, code: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setFormData({ ...formData, code: value });
+                      }}
                       placeholder={MESSAGES.FORM.PLACEHOLDER.CODE}
                       required
                       type="text"
+                      inputMode="numeric"
+                      maxLength={4}
                       value={formData.code}
                       className="flex-1"
                     />

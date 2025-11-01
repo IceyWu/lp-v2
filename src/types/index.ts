@@ -54,3 +54,70 @@ export interface FormErrors {
   signature?: string;
   avatar?: string;
 }
+
+// 通知相关类型
+export interface NotificationUserInfo {
+  id: number;
+  mobile?: string;
+  name: string;
+  password?: string;
+  avatar?: string;
+  github?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  role: string;
+  sex: number;
+  birthday?: string | null;
+  city?: string | null;
+  job?: string | null;
+  company?: string | null;
+  signature?: string | null;
+  email?: string | null;
+  website?: string | null;
+  freezed: boolean;
+  uuId?: string | null;
+  background?: string | null;
+  chatRoomId?: number | null;
+  avatarFileMd5?: string;
+  backgroundInfoFileMd5?: string;
+  username?: string | null;
+  userId?: number | null;
+  openid?: string;
+  ipInfoId?: number;
+}
+
+export interface NotificationObjectInfo {
+  id: number;
+  title: string;
+  content: string;
+  extraData?: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+  isPinned?: boolean;
+}
+
+export interface NotificationMessage {
+  id: number;
+  type: "like" | "comment" | "collection" | "follow";
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  senderId: number;
+  receiverId: number;
+  isRead: boolean;
+  objId: number;
+  sendUserInfo: NotificationUserInfo;
+  receiveUserInfo: NotificationUserInfo;
+  objInfo: NotificationObjectInfo;
+}
+
+export interface NotificationListResponse {
+  list: NotificationMessage[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}

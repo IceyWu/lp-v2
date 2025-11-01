@@ -3,6 +3,7 @@ import { Bell, LogOut, Plus, Search, User } from "lucide-react";
 import MobileSidebar from "@/components/MobileSidebar";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,6 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useIsAuthenticated, useLogout } from "../hooks/useAuth";
+import { useUnreadCount } from "../hooks/useNotifications";
 
 interface HeaderProps {
   activeTab: string;
@@ -29,6 +31,7 @@ export default function Header({
   const { isAuthenticated, user } = useIsAuthenticated();
   const logoutMutation = useLogout();
   const router = useRouter();
+  const { data: unreadCount = 0 } = useUnreadCount();
 
   return (
     <TooltipProvider>
@@ -88,13 +91,23 @@ export default function Header({
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        className="h-9 w-9 rounded-full text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <Bell size={18} />
-                      </Button>
+                      <Link to="/notifications">
+                        <Button
+                          className="relative h-9 w-9 rounded-full text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <Bell size={18} />
+                          {unreadCount > 0 && (
+                            <Badge
+                              className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-white text-xs"
+                              variant="destructive"
+                            >
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </Badge>
+                          )}
+                        </Button>
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>通知</p>
